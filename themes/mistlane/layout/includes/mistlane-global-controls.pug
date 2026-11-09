@@ -109,6 +109,12 @@
         span
     button.music-float-toggle(type="button" data-music-play aria-label="播放" title="播放")
       i.fas.fa-play(aria-hidden="true")
+    button.music-dock-hide(type="button" data-music-dock-hide aria-label="隐藏音乐悬浮栏" title="隐藏音乐悬浮栏")
+      i.fas.fa-chevron-down(aria-hidden="true")
+
+  button#mistlane-music-handle.music-dock-handle(type="button" data-music-dock-show aria-label="显示音乐悬浮栏" title="显示音乐悬浮栏" hidden)
+    span.music-handle-disc(data-music-cover aria-hidden="true")
+    i.fas.fa-music(aria-hidden="true")
 
   aside#mistlane-music-panel.mistlane-control-panel(aria-hidden="true" aria-labelledby="mistlane-music-title" inert)
     .music-mini-hero
@@ -120,6 +126,13 @@
           span POCKET RADIO
         button.mistlane-panel-close(type="button" data-close-music aria-label="收起音乐播放器" title="收起")
           i.fas.fa-chevron-down(aria-hidden="true")
+      .music-mini-source
+        span.music-mini-source-label 来源
+        .music-source-switch.is-compact(role="radiogroup" aria-label="音乐来源")
+          button(type="button" role="radio" data-music-source="local" aria-checked="false" tabindex="-1")
+            span 本地
+          button(type="button" role="radio" data-music-source="meting" aria-checked="true" class="is-active")
+            span 歌单
       .mistlane-track
         .music-mini-artwork(aria-hidden="true")
           span.music-mini-vinyl

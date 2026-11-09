@@ -63,6 +63,8 @@
 .music-status-dot { width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; background: var(--m-faint); transition: background .3s, box-shadow .3s; }
 .is-playing .music-status-dot { background: var(--m-accent); box-shadow: 0 0 0 3px var(--m-accent-soft); animation: music-dot-breathe 2.4s ease-in-out infinite; }
 .music-stage-edition { font-family: var(--m-mono); font-size: 9px; letter-spacing: .16em; opacity: .75; }
+.music-stage-meta { display: flex; flex: 0 0 auto; align-items: center; gap: 16px; }
+#music-room .music-source-switch { --sw-line: var(--m-line); --sw-muted: var(--m-faint); --sw-ink: var(--m-ink); --sw-accent: var(--m-accent); --sw-accent-ink: var(--m-accent-ink); }
 .music-deck { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; padding: 34px 0 26px; }
 
 /* The record: hairline grooves, a still light sheen, and slow orbits around it. */
@@ -186,7 +188,12 @@
   .music-lyric-window > button.is-current { padding-left: 0; }
   .music-lyric-window > button::before { display: none; }
   .music-lyrics-placeholder { padding-left: 0; }
-  .music-stage-topline { gap: 10px; }
+  .music-stage-topline { flex-wrap: wrap; gap: 10px; row-gap: 9px; }
+  .music-live-label { min-width: 0; flex: 1 1 auto; }
+  .music-live-label > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .music-stage-meta { margin-left: auto; gap: 10px; }
+  .music-source-switch { padding: 1px; }
+  .music-source-switch button { padding: 4px 8px; font-size: 9px; letter-spacing: .02em; }
   .music-stage-edition { overflow: hidden; font-size: 8px; letter-spacing: .08em; text-overflow: ellipsis; white-space: nowrap; }
   .music-stage-footer { font-size: 8.5px; letter-spacing: .1em; }
   .music-library { margin-top: 34px; }
@@ -204,6 +211,8 @@
   .music-room-header h1 { font-size: 24px; }
   .music-player-stage { padding-right: 18px; padding-left: 18px; }
   .music-stage-edition { display: none; }
+  .music-source-switch button { padding: 4px 8px; font-size: 9px; }
+  .music-source-switch button > i { display: none; }
   .music-deck-controls { gap: 8px; }
   .music-deck-controls .mistlane-volume { width: 84px; }
   .music-library-heading { flex-wrap: wrap; align-items: flex-start; gap: 6px; }

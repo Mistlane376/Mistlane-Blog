@@ -1,4 +1,5 @@
 import { onMount } from '../lib/lifecycle'
+import { readLocal, writeLocal } from '../lib/storage'
 
 // The room and the persistent pocket player are views of one audio kernel.
 export const bindMusicViews = player => {
@@ -6,6 +7,9 @@ export const bindMusicViews = player => {
   const text = (selector, value) => all(selector).forEach(node => { node.textContent = value })
   const modeLabels = ['顺序播放', '单曲循环', '随机播放']
   const modeIcons = ['fa-list-ol', 'fa-repeat', 'fa-shuffle']
+  const SOURCE_KEY = 'mistlane-music-source'
+  const DOCK_KEY = 'mistlane-music-dock-hidden'
+  const phoneQuery = matchMedia('(max-width: 768px)')
   let returnFocus = null
   let notice = ''
   let scrubber = null
@@ -148,6 +152,37 @@ export const bindMusicViews = player => {
     })
   }
 
+  // Local files vs. the online playlist: one segmented control on the music
+  // page and one inside the pocket player, both driven by the same state.
+  const renderSource = () => {
+    const state = player.getState()
+    // Before the kernel loads, trust the remembered choice so the switch does
+    // not flicker while the online playlist is still being fetched.
+    const stored = readLocal(SOURCE_KEY, null)
+    const source = state.initialized
+      ? state.source
+      : (stored === 'local' || stored === 'meting' ? stored : null)
+    if (!source) return
+    all('[data-music-source]').forEach(button => {
+      const active = button.dataset.musicSource === source
+      button.classList.toggle('is-active', active)
+      button.setAttribute('aria-checked', String(active))
+      button.tabIndex = active ? 0 : -1
+    })
+  }
+
+  // The dock can be dismissed on phones: it collapses to a small handle on the
+  // same corner so the melody is still one tap away.
+  const setDockHidden = (hidden, persist = true) => {
+    const dock = document.querySelector('.music-float-dock')
+    const handle = document.getElementById('mistlane-music-handle')
+    if (!dock || !handle) return
+    dock.hidden = hidden
+    handle.hidden = !hidden
+    if (hidden) setPanel(false)
+    if (persist) writeLocal(DOCK_KEY, hidden)
+  }
+
   const centerLyric = (smooth = false) => {
     cancelAnimationFrame(lyricFrame)
     lyricFrame = requestAnimationFrame(() => {
@@ -222,7 +257,11 @@ export const bindMusicViews = player => {
 
   window.addEventListener('fm:init', () => {
     if (!notice || notice === '正在整理歌单…') setNotice(player.getState().playlist.length ? '收藏喜欢的旋律，让它们陪你度过平常的一天。' : '歌单暂时为空。')
-    renderPlaylist(); renderVolume(); renderMode()
+    renderPlaylist(); renderVolume(); renderMode(); renderSource()
+  })
+  window.addEventListener('fm:source', () => {
+    renderPlaylist(); renderSource(); renderTime({ progress: 0, currentTimeStr: '0:00', durationStr: '0:00' })
+    if (!player.getState().error) setNotice('收藏喜欢的旋律，让它们陪你度过平常的一天。')
   })
   window.addEventListener('fm:track', () => { renderTrack(); renderTime({ progress: 0, currentTimeStr: '0:00', durationStr: '0:00' }) })
   window.addEventListener('fm:play-state', () => {
@@ -243,14 +282,18 @@ export const bindMusicViews = player => {
         setNotice('正在整理歌单…')
         await player.init()
       }
-      action()
+      await action()
     } catch { setNotice('音乐暂时没有准备好，请再试一次。') }
   }
   document.addEventListener('click', event => {
     const target = event.target
     const panel = document.getElementById('mistlane-music-panel')
     if (target.closest('#mistlane-music-orb')) return setPanel(!panel?.classList.contains('is-open'))
+    if (target.closest('[data-music-dock-hide]')) return setDockHidden(true)
+    if (target.closest('[data-music-dock-show]')) return setDockHidden(false)
     if (target.closest('[data-close-music]')) return setPanel(false, true)
+    const sourceButton = target.closest('[data-music-source]')
+    if (sourceButton) return runAction(() => player.setSource(sourceButton.dataset.musicSource))
     const queueToggle = target.closest('[data-music-queue-toggle]')
     if (queueToggle) {
       const queue = document.getElementById('music-mini-queue')
@@ -305,8 +348,11 @@ export const bindMusicViews = player => {
     const inRoom = Boolean(document.getElementById('music-room'))
     document.documentElement.classList.toggle('music-room-active', inRoom)
     if (inRoom && !player.getState().initialized) player.init()
-    renderPlaylist(); renderVolume(); renderMode(); renderTime(); renderPlayState()
+    renderPlaylist(); renderVolume(); renderMode(); renderSource(); renderTime(); renderPlayState()
     if (player.getState().initialized) renderLyrics()
+    // A hidden dock only makes sense on phones; wide screens always show it.
+    setDockHidden(phoneQuery.matches && readLocal(DOCK_KEY, false) === true, false)
     text('[data-music-notice]', notice || '正在整理歌单…')
   })
+  phoneQuery.addEventListener('change', event => { if (!event.matches) setDockHidden(false) })
 }

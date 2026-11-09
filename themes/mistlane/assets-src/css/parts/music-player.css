@@ -57,6 +57,21 @@
 .music-float-toggle { position: relative; display: grid; width: 38px; height: 38px; flex: 0 0 auto; place-items: center; padding: 0; border: 0; border-radius: 50%; background: var(--p-accent); color: var(--p-accent-ink); font-size: 11px; cursor: pointer; transition: transform .2s, box-shadow .2s; }
 .music-float-toggle:hover { transform: scale(1.05); box-shadow: 0 0 0 4px var(--p-accent-soft); }
 .music-float-toggle:focus-visible { outline: 2px solid var(--p-ink); outline-offset: 4px; }
+
+/* Dismissing the dock on a phone: the capsule folds away and leaves a small
+   record handle in the same corner, so the music stays one tap away. */
+.music-dock-hide { display: none; width: 26px; height: 26px; flex: 0 0 auto; padding: 0; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--p-faint); font-size: 8px; cursor: pointer; transition: color .2s, background .2s; }
+.music-dock-hide:hover { background: var(--p-paper-2); color: var(--p-ink); }
+.music-dock-hide:focus-visible { outline: 2px solid var(--p-ink); outline-offset: 2px; }
+.music-dock-handle { position: fixed; z-index: 999; bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px)); left: 16px; display: grid; width: 46px; height: 46px; place-items: center; padding: 0; border: 1px solid var(--p-line, rgba(20, 35, 42, .16)); border-radius: 50%; background: var(--p-paper, #daecea); box-shadow: 0 8px 24px rgba(20, 22, 24, .12); color: var(--p-accent, #16706b); font-size: 13px; cursor: pointer; transition: transform .2s, box-shadow .2s; animation: music-handle-in .22s ease both; }
+.music-dock-handle:hover { transform: translateY(-2px); box-shadow: 0 11px 26px rgba(20, 22, 24, .16); }
+.music-dock-handle:focus-visible { outline: 2px solid var(--p-ink, #14232a); outline-offset: 3px; }
+.music-dock-handle > i { position: relative; z-index: 1; color: var(--p-accent-ink, #f2fbfa); text-shadow: 0 1px 3px rgba(0, 0, 0, .35); }
+.music-handle-disc { position: absolute; inset: 4px; border-radius: 50%; background: var(--p-paper-2, #cadfdd) url('/images/selection3.jpg') center / cover; opacity: .9; }
+.is-playing .music-handle-disc { animation: music-disc-spin 18s linear infinite; }
+.music-float-dock[hidden], .music-dock-handle[hidden] { display: none !important; }
+@keyframes music-handle-in { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: none; } }
+[data-theme='dark'] .music-dock-handle { border-color: rgba(233, 241, 242, .16); background: #101a1e; color: #5fc2bb; box-shadow: 0 8px 26px rgba(0, 0, 0, .44); }
 .is-playing .music-orb-disc { animation-play-state: running; }
 
 /* ── Shared controls ──────────────────────────────────────── */
@@ -187,6 +202,20 @@
 .music-mini-footer a:hover { border-color: var(--p-line-strong); background: var(--p-paper-2); color: var(--p-ink); }
 .music-mini-footer a > i { font-size: 9px; }
 .music-mini-footer a span > i { margin-right: 5px; font-size: 10px; }
+.music-mini-source { display: flex; align-items: center; gap: 10px; margin: -6px 0 15px; color: var(--p-faint); font-size: 8.5px; letter-spacing: .14em; }
+.music-mini-source-label { flex: 0 0 auto; text-transform: uppercase; }
+
+/* ── Source switch: local files ⇄ online playlist ─────────── */
+.music-source-switch { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 2px; padding: 2px; border: 1px solid var(--sw-line, var(--p-line)); border-radius: 999px; background: transparent; }
+.music-source-switch button { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 0; border-radius: 999px; background: transparent; color: var(--sw-muted, var(--p-muted)); font: inherit; font-size: 9.5px; letter-spacing: .06em; line-height: 1.4; white-space: nowrap; cursor: pointer; transition: background .2s, color .2s; }
+.music-source-switch button > i { font-size: 8px; opacity: .75; }
+.music-source-switch button:hover { color: var(--sw-ink, var(--p-ink)); }
+.music-source-switch button:focus-visible { outline: 1px solid var(--sw-accent, var(--p-accent)); outline-offset: 2px; }
+.music-source-switch button.is-active { background: var(--sw-accent, var(--p-accent)); color: var(--sw-accent-ink, var(--p-accent-ink)); }
+.music-source-switch button.is-active > i { opacity: 1; }
+.music-source-switch.is-compact { padding: 1px; }
+.music-source-switch.is-compact button { padding: 3px 8px; font-size: 8.5px; letter-spacing: .08em; }
+
 #mistlane-music-panel [hidden] { display: none !important; }
 
 @keyframes music-disc-spin { to { transform: rotate(360deg); } }
@@ -207,12 +236,20 @@
   .music-float-dock.is-expanded #mistlane-music-orb { padding-right: 24px; }
 }
 
+@media (max-width: 768px) {
+  .music-dock-hide { display: grid; }
+}
+
 @media (max-width: 600px) {
-  .music-float-dock { bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px)); left: 16px; gap: 4px; padding: 5px; }
+  /* Phones: the capsule keeps only the record and the play button; the song
+     title lives in the panel, and the dock can be dismissed entirely. */
+  .music-float-dock { bottom: max(20px, calc(env(safe-area-inset-bottom) + 10px)); left: 16px; gap: 4px; padding: 5px 7px 5px 5px; }
   .music-orb-disc { width: 34px; height: 34px; }
-  .music-float-copy { max-width: 110px; }
+  .music-float-copy, .music-orb-caret { display: none; }
+  #mistlane-music-orb { padding: 2px; }
   .music-float-toggle { width: 34px; height: 34px; font-size: 10px; }
-  .music-float-progress { right: 18px; left: 44px; bottom: -3px; }
+  .music-dock-hide { width: 22px; height: 22px; font-size: 7px; }
+  .music-float-progress { right: 12px; left: 38px; bottom: -3px; }
   #mistlane-music-panel { bottom: max(88px, calc(env(safe-area-inset-bottom) + 76px)); left: 16px; max-height: calc(100dvh - max(88px, calc(env(safe-area-inset-bottom) + 76px)) - 12px); width: min(322px, calc(100vw - 24px)); border-radius: 6px; }
 }
 @media (max-width: 360px) {
@@ -220,6 +257,6 @@
   .music-float-copy strong { font-size: 10.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .music-orb-disc, .music-mini-vinyl, .music-mini-equalizer i, .music-mini-song-mark i, .is-playing .music-orb-status-light { animation: none !important; }
+  .music-orb-disc, .music-mini-vinyl, .music-mini-equalizer i, .music-mini-song-mark i, .is-playing .music-orb-status-light, .music-handle-disc, .music-dock-handle { animation: none !important; }
 }
-html[data-reduce-motion='true'] :is(.music-orb-disc, .music-mini-vinyl, .music-mini-equalizer i, .music-mini-song-mark i, .music-orb-status-light) { animation: none !important; }
+html[data-reduce-motion='true'] :is(.music-orb-disc, .music-mini-vinyl, .music-mini-equalizer i, .music-mini-song-mark i, .music-orb-status-light, .music-handle-disc, .music-dock-handle) { animation: none !important; }

@@ -50,6 +50,7 @@ source/ + themes/mistlane/
 | 动态 | `source/_moments/*.md` | `scripts/content-paths.js` 渲染到 `/moments/` |
 | 学习路径 | 由文章 front-matter 的 `series` / `series_order` 聚合 | `scripts/content-paths.js` 生成 `/series/` |
 | 相册 | `source/album/data.json`（加密相册在 `source/album/private/`） | 前端 `js/mistlane/album.js` 读取 |
+| 音乐 | `source/data/music.json`（`local.playlist` 本地文件 + `meting` 在线歌单） | 前端 `js/features/music.js`：两套歌单共用一个 audio 内核，音乐页与随身听面板的开关切换来源，选择记在 `localStorage` |
 | 友链 / 追番 | `source/_data/link.yml`、`source/_data/bangumis.json` | 主题模板 + `scripts/bangumi-data.js` |
 | 归档索引 | — | `scripts/archive-hub-data.js` 生成 `/data/archive-hub.json` |
 

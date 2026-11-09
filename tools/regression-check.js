@@ -116,6 +116,11 @@ if (manifest) {
   const musicBundles = markerBundles(music)
   assert(Boolean(musicBundles?.css.music), 'PJAX marker carries music page styles')
   assert((music.match(/<audio\b/g) || []).length === 1, 'music room shares the single persistent audio element')
+  // 双音源开关：听音室与随身听各一份，切换结果由 localStorage 记住
+  assert(music.includes('data-music-source="local"') && music.includes('data-music-source="meting"'), 'music room exposes the local/online source switch')
+  assert(home.includes('data-music-source="local"') && home.includes('data-music-source="meting"'), 'pocket player ships the same source switch')
+  assert(home.includes('id="mistlane-music-handle"') && home.includes('data-music-dock-hide'), 'mobile dock collapses into a restore handle')
+  assert(contentPages.every(page => page.html.includes('id="mistlane-music-handle"')), 'every page can restore the hidden dock')
 
   // 旧的无哈希注入必须彻底移除，避免重复加载
   assert(!home.includes('/css/mistlane/markdown.css') && !home.includes('/js/mistlane/petals.js'), 'legacy unhashed inject entries are removed')
@@ -128,6 +133,11 @@ if (manifest) {
   assert(!coreCss.includes('.mistlane-double-aside') && !coreCss.includes('.calendar-day'), 'core css drops the non-post sidebar styles')
   assert(!coreCss.includes('.about-intro') && !coreCss.includes('.about-site-grid'), 'core css excludes about-page styles')
   assert(coreCss.includes('.motion-pending') && coreCss.includes('.motion-page-enter'), 'core css ships the global motion system')
+  assert(coreCss.includes('.music-source-switch button.is-active') && coreCss.includes('.music-dock-handle{position:fixed'), 'core css ships the source switch and the dock restore handle')
+  // 手机端评论：触屏没有 hover，回复/点赞必须常显；预览框不再左缩 3rem，头像收小
+  assert(coreCss.includes('@media(hover:none)') && coreCss.includes('#twikoo .tk-actions{display:inline-flex'), 'touch devices always show reply and like actions')
+  assert(coreCss.includes('#twikoo .tk-preview-container{margin-left:0'), 'mobile comments drop the 3rem preview indent')
+  assert(coreCss.includes('#twikoo .tk-avatar{width:30px;height:30px'), 'mobile comments use a smaller avatar')
   assert(coreCss.includes('.mistlane-reading-progress') && coreCss.includes('.site-page.is-current'), 'core css ships navigation and reading progress polish')
   // 移动端抽屉：关闭按钮必须存在，且层级隔离样式随 core 一起加载
   assert(home.includes('id="sidebar-close"'), 'mobile drawer ships an explicit close button')
@@ -162,6 +172,8 @@ assert(coreBundle.includes('IntersectionObserver') && coreBundle.includes('motio
 assert(coreBundle.includes('mistlane-reading-progress') && coreBundle.includes('aria-current'), 'core script syncs navigation state and reading progress')
 assert(coreBundle.includes('effects-paused') && coreBundle.includes('visibilitychange'), 'ambient effects pause while the page is hidden')
 assert(coreBundle.includes('fm:play-state'), 'music views share Firefly-style state events')
+assert(coreBundle.includes('fm:source') && coreBundle.includes('mistlane-music-source'), 'music kernel switches between the local and online playlists')
+assert(coreBundle.includes('mistlane-music-dock-hidden'), 'dock visibility is remembered on phones')
 assert(coreBundle.includes('/data/music.json'), 'music kernel loads the playlist lazily')
 assert(!coreBundle.includes('mistlane-music-state-v2'), 'music kernel does not restore playback after navigation')
 assert(!coreBundle.includes('mistlane-music-mode'), 'play mode remains in memory only')

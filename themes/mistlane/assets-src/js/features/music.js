@@ -5,6 +5,8 @@ const audio = document.getElementById('mistlane-global-audio')
 
 if (audio) {
   const VOLUME_KEY = 'mistlane-music-volume'
+  const SOURCE_KEY = 'mistlane-music-source'
+  const sourceNames = ['local', 'meting']
   const modeNames = ['list', 'one', 'random']
   let loadVersion = 0
   let trackUrls = []
@@ -19,6 +21,9 @@ if (audio) {
     currentIndex: 0,
     isPlaying: false,
     playMode: 0,
+    source: 'local',
+    playlists: {},
+    indexes: {},
     volume: Number(readLocal(VOLUME_KEY, 0.35)),
     isMuted: false,
     lyrics: [],
@@ -39,6 +44,7 @@ if (audio) {
     playlist: state.playlist,
     currentIndex: state.currentIndex,
     track: currentTrack(),
+    source: state.source,
     isPlaying: state.isPlaying,
     playMode: state.playMode,
     volume: state.volume,
@@ -157,6 +163,7 @@ if (audio) {
     if (typeof index !== 'number' || !Number.isInteger(index)) return
     audio.pause()
     state.currentIndex = index
+    state.indexes[state.source] = index
     state.error = null
     const track = currentTrack()
     const version = ++loadVersion
@@ -259,6 +266,57 @@ if (audio) {
     throw new Error('所有 Meting API 均不可用')
   }
 
+  // Two playlists share one audio kernel: the private local files and the
+  // online Meting playlist. Each keeps its own cached list and last position,
+  // so switching back and forth does not refetch or lose your place.
+  const sourcePlaylist = async name => {
+    const cached = state.playlists[name]
+    if (cached?.length) return cached
+    const playlist = name === 'local'
+      ? (state.config?.local?.playlist || []).map(normalizeTrack).filter(track => track.url)
+      : await fetchMetingData(state.config?.meting || {})
+    if (playlist.length) state.playlists[name] = playlist
+    return playlist
+  }
+
+  const applySource = (name, playlist, autoPlay) => {
+    audio.pause()
+    state.source = name
+    state.playlist = playlist
+    state.error = null
+    state.currentIndex = Math.min(state.indexes[name] || 0, Math.max(0, playlist.length - 1))
+    writeLocal(SOURCE_KEY, name)
+    emit('fm:source', { source: name, playlist })
+    if (!playlist.length) {
+      emit('fm:play-state', { isPlaying: false })
+      emit('fm:error', { message: name === 'local' ? '私藏音乐还没有添加歌曲' : '这个歌单暂时是空的' })
+      return
+    }
+    loadTrack(state.currentIndex, autoPlay)
+  }
+
+  const setSource = async name => {
+    if (!sourceNames.includes(name) || !state.config) return
+    if (name === state.source && state.playlist.length) return
+    const resume = state.isPlaying
+    if (name === 'meting') emit('fm:notice', { message: '正在取回在线歌单…' })
+    let playlist
+    try {
+      playlist = await sourcePlaylist(name)
+    } catch (error) {
+      const local = await sourcePlaylist('local').catch(() => [])
+      if (name === 'meting' && local.length) {
+        applySource('local', local, resume)
+        emit('fm:notice', { message: '在线歌单暂时取不到，已切回本地音乐。' })
+        return
+      }
+      emit('fm:error', { message: '这个歌单暂时打不开，请稍后再试。' })
+      return
+    }
+    if (!playlist.length) return emit('fm:error', { message: name === 'local' ? '私藏音乐还没有添加歌曲' : '这个歌单暂时是空的' })
+    applySource(name, playlist, resume)
+  }
+
   const initialize = async () => {
     state.initializing = true
     try {
@@ -269,17 +327,24 @@ if (audio) {
       state.volume = Number.isFinite(state.volume) ? Math.max(0, Math.min(1, state.volume)) : (state.config.volume ?? 0.35)
       audio.volume = state.volume
       if (state.config.enabled === false) throw new Error('音乐暂未开放')
-      const local = (state.config.local?.playlist || []).map(normalizeTrack).filter(track => track.url)
-      if (state.config.mode === 'meting') {
-        try { state.playlist = await fetchMetingData(state.config.meting || {}) }
-        catch (error) {
-          if (!local.length) throw error
-          state.playlist = local
-          emit('fm:notice', { message: '在线歌单暂不可用，正在收听私藏音乐。' })
-        }
-      } else state.playlist = local
+      const preferred = readLocal(SOURCE_KEY, null)
+      const wanted = sourceNames.includes(preferred) ? preferred : (state.config.mode === 'local' ? 'local' : 'meting')
+      let source = wanted
+      let playlist = []
+      try { playlist = await sourcePlaylist(source) }
+      catch (error) {
+        // The online playlist is the fragile half: keep the local files as the
+        // safety net instead of leaving the player empty.
+        const local = await sourcePlaylist('local').catch(() => [])
+        if (!local.length) throw error
+        source = 'local'
+        playlist = local
+        emit('fm:notice', { message: '在线歌单暂不可用，正在收听私藏音乐。' })
+      }
+      state.source = source
+      state.playlist = playlist
       state.initialized = true
-      emit('fm:init', { playlist: state.playlist, playMode: state.playMode, volume: state.volume, isMuted: false })
+      emit('fm:init', { playlist: state.playlist, playMode: state.playMode, volume: state.volume, isMuted: false, source })
       if (state.playlist.length) {
         const startIndex = state.playMode === 2 ? Math.floor(Math.random() * state.playlist.length) : 0
         loadTrack(startIndex, false)
@@ -287,7 +352,7 @@ if (audio) {
     } catch (error) {
       state.initialized = false
       state.error = error.message || '音乐加载失败'
-      emit('fm:init', { playlist: [], playMode: state.playMode, volume: state.volume, isMuted: false })
+      emit('fm:init', { playlist: [], playMode: state.playMode, volume: state.volume, isMuted: false, source: state.source })
       emit('fm:error', { message: state.error })
     } finally { state.initializing = false }
   }
@@ -323,7 +388,7 @@ if (audio) {
 
   window.MistlaneMusic = {
     audio, init, getState, togglePlay, playNext: () => playNext(false), playPrev,
-    cyclePlayMode, setVolume, toggleMute, seek, seekToTime, playTrackByIndex, loadTrack
+    cyclePlayMode, setVolume, toggleMute, seek, seekToTime, playTrackByIndex, loadTrack, setSource
   }
   bindMusicViews(window.MistlaneMusic)
 }

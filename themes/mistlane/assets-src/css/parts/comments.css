@@ -341,13 +341,182 @@
   background: var(--ui-surface-solid) !important;
 }
 
+/* 触屏设备没有 hover：Twikoo 默认把「回复 / 点赞」藏在 :hover 里，
+   手机上等于永远点不到，这里改成常显。 */
+@media (hover: none) {
+  #twikoo .tk-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+}
+
+/* 手机端：评论卡片原本 40px 头像 + 双份内边距，正文只剩 220px 左右；
+   排序栏、预览框、输入框也都按桌面尺寸写死。这里统一按窄屏重排。 */
 @media screen and (max-width: 768px) {
   #post-comment {
-    margin-top: 32px;
+    margin-top: 30px;
+  }
+
+  #post-comment .comment-head {
+    gap: 10px;
+    margin-bottom: 11px;
+  }
+
+  #post-comment .comment-headline {
+    font-size: 0.95rem;
   }
 
   #post-comment .comment-wrap {
-    padding: 12px 10px 6px;
+    padding: 12px 9px 6px;
     border-radius: 6px;
+  }
+
+  #twikoo {
+    font-size: 0.92rem;
+  }
+
+  #twikoo .tk-comments-title {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  #twikoo .tk-comments-actions {
+    gap: 4px;
+  }
+
+  #twikoo .tk-sort-item {
+    padding: 3px 8px;
+    font-size: 0.76rem;
+  }
+
+  #twikoo .tk-comments-container > .tk-comment {
+    margin-top: 10px;
+    padding: 11px 11px 9px !important;
+  }
+
+  #twikoo .tk-avatar {
+    width: 30px;
+    height: 30px;
+    margin-right: 9px;
+    border-width: 1px;
+    border-radius: 50%;
+  }
+
+  #twikoo .tk-avatar .tk-avatar-img {
+    height: 30px;
+  }
+
+  #twikoo .tk-nick {
+    font-size: 0.88rem;
+  }
+
+  #twikoo .tk-time {
+    font-size: 0.76rem;
+  }
+
+  #twikoo .tk-content {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    /* 上游写的是 word-break: break-all，会把英文单词从中间劈开 */
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #twikoo .tk-content img,
+  #twikoo .tk-preview-container img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  #twikoo .tk-content pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  #twikoo .tk-row {
+    flex-wrap: wrap;
+    gap: 2px 6px;
+  }
+
+  #twikoo .tk-actions {
+    margin-left: 0;
+    gap: 12px;
+  }
+
+  #twikoo .tk-actions button {
+    padding: 3px 0;
+    font-size: 0.8rem;
+  }
+
+  #twikoo .tk-extras {
+    gap: 2px 8px;
+    font-size: 0.74rem;
+  }
+
+  /* 楼中楼再缩一层：只留一条左侧细线，不再同时吃 margin + padding */
+  #twikoo .tk-replies {
+    margin-left: 0;
+    padding-left: 9px;
+    border-left: 1px solid var(--ui-border);
+  }
+
+  #twikoo .tk-replies .tk-comment {
+    margin-top: 6px;
+    padding: 6px 0 0 !important;
+    border-left: 0 !important;
+    background: transparent !important;
+  }
+
+  #twikoo .tk-replies .tk-avatar {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+  }
+
+  #twikoo .tk-replies .tk-avatar .tk-avatar-img {
+    height: 24px;
+  }
+
+  /* 预览框默认 margin-left: 3rem，手机上白吃 48px 宽 */
+  #twikoo .tk-preview-container {
+    margin-left: 0;
+    padding: 5px 10px;
+  }
+
+  /* iOS 只在输入框字号 ≥16px 时才不会聚焦放大整页 */
+  #twikoo .el-input__inner,
+  #twikoo .el-textarea__inner,
+  #twikoo .tk-input textarea {
+    font-size: 16px;
+  }
+
+  #twikoo .tk-meta-input .el-input .el-input-group__prepend {
+    padding: 0 9px;
+  }
+
+  #twikoo .tk-submit .tk-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  #twikoo .tk-submit .el-button {
+    min-width: 62px;
+  }
+
+  #twikoo .OwO-body {
+    max-width: calc(100vw - 32px);
+  }
+
+  #twikoo .tk-pagination {
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #twikoo .tk-footer {
+    text-align: center;
   }
 }

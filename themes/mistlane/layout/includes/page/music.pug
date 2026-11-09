@@ -12,7 +12,15 @@ section#music-room(aria-labelledby="music-room-title")
       span.music-live-label
         span.music-status-dot
         span(data-music-status) 等你按下播放
-      span.music-stage-edition SLOW MOMENTS · NO. 01
+      .music-stage-meta
+        span.music-stage-edition SLOW MOMENTS · NO. 01
+        .music-source-switch(role="radiogroup" aria-label="音乐来源")
+          button(type="button" role="radio" data-music-source="local" aria-checked="false" tabindex="-1")
+            i.fas.fa-hard-drive(aria-hidden="true")
+            span 本地音乐
+          button(type="button" role="radio" data-music-source="meting" aria-checked="true" class="is-active")
+            i.fas.fa-cloud(aria-hidden="true")
+            span 歌单音乐
     .music-deck
       .music-turntable(aria-hidden="true")
         .music-turntable-mechanism
