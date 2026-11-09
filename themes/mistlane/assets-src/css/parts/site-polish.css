@@ -457,10 +457,19 @@ a:hover {
   content: '';
 }
 
+/* The base theme clamps every #site-title with .limit-more-line (display:
+   -webkit-box, -webkit-line-clamp), whose overflow: hidden cuts anything that
+   leaves the line box. With the tight 1.15 line-height used here that clipped
+   the descender of the "g" in the site name and flattened the drop shadow into
+   a straight edge, which read as the heading being covered up. The hero title
+   is short and sized per breakpoint, so let it paint outside its line box. */
 #page-header.full_page #site-title {
+  display: block;
   margin: 0;
   padding: 0;
   border: 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
   color: #fff;
   font-size: 3.45rem;
   line-height: 1.15;

@@ -134,6 +134,8 @@ if (manifest) {
   assert(coreCss.includes('.mobile-sidebar-open') && coreCss.includes('#sidebar .sidebar-close'), 'core css keeps ambient effects and the music dock below the mobile drawer')
   // 移动端导航：品牌副标题与图标按钮样式随 core 加载
   assert(home.includes('nav-site-tagline') && coreCss.includes('.nav-site-tagline'), 'mobile nav renders the brand tagline with its styles')
+  // 首页大标题不能被 -webkit-box 行裁切吃掉降部和投影
+  assert(coreCss.includes('#page-header.full_page #site-title{display:block') && coreCss.includes('overflow:visible;-webkit-line-clamp:unset'), 'hero title paints outside its line box instead of being clipped')
 }
 
 const idCount = (html, id) => (html.match(new RegExp(`id=["']${id}["']`, 'g')) || []).length
