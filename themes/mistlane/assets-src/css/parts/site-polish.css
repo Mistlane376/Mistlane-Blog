@@ -2200,7 +2200,7 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
 
 .type-categories .category-list-link {
   display: grid;
-  grid-template-columns: 42% minmax(0, 1fr);
+  grid-template-columns: 48% minmax(0, 1fr);
   width: 100%;
   height: 100%;
   border: 0;
@@ -2304,15 +2304,49 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
   }
 
   .type-categories .category-list-item {
-    min-height: 184px;
+    min-height: 176px;
   }
 
   .type-categories .category-list-link {
-    grid-template-columns: 34% minmax(0, 1fr);
+    grid-template-columns: 42% minmax(0, 1fr);
   }
 
   .type-categories .category-card-content {
     padding: 19px 18px 16px;
+  }
+}
+
+/* On phones the side-by-side card leaves the cover a 2:3 sliver, so the crop
+   changes with every viewport. Stack the cover instead and let it keep the
+   16:10 ratio of the source art, matching the home-page cards. */
+@media screen and (max-width: 600px) {
+  .type-categories .category-list-item {
+    min-height: 0;
+  }
+
+  .type-categories .category-list-link {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .type-categories .category-card-cover {
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .type-categories .category-card-cover::after {
+    background: linear-gradient(180deg, rgba(14, 30, 42, 0.02) 40%, rgba(14, 30, 42, 0.34));
+  }
+
+  .type-categories .category-card-content {
+    padding: 15px 17px 14px;
+  }
+
+  .type-categories .category-card-summary {
+    margin-top: 8px;
+  }
+
+  .type-categories .category-card-footer {
+    padding-top: 12px;
   }
 }
 
@@ -2460,14 +2494,32 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
     margin-top: 14px;
   }
 
+  /* Phone cards keep the site's usual shape - cover on top at the 16:10 the
+     artwork is drawn in, text underneath. The desktop 34% side column had the
+     cover collapse into a small centred block over an almost empty card. */
   .category-detail-page #recent-posts.category-article-list .recent-post-item {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
   }
 
   .category-detail-page #recent-posts.category-article-list .post_cover {
-    flex-basis: 34%;
-    width: 34%;
-    min-height: 142px;
+    flex: none;
+    width: 100%;
+    height: auto !important;
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .category-detail-page #recent-posts.category-article-list .post_cover a,
+  .category-detail-page #recent-posts.category-article-list .post_cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .category-detail-page #recent-posts.category-article-list .post_cover img {
+    object-fit: cover;
   }
 
   .category-detail-page #recent-posts.category-article-list > .recent-post-items > .recent-post-item > .recent-post-info {
@@ -2987,7 +3039,9 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
 }
 
 #rightside #rightside-config-show > button,
-#rightside #rightside-config-hide > button {
+#rightside #rightside-config-hide > button,
+#rightside #rightside-config-show > a,
+#rightside #rightside-config-hide > a {
   position: relative;
   width: 40px;
   height: 40px;
@@ -3002,7 +3056,9 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
 }
 
 #rightside #rightside-config-show > button:hover,
-#rightside #rightside-config-hide > button:hover {
+#rightside #rightside-config-hide > button:hover,
+#rightside #rightside-config-show > a:hover,
+#rightside #rightside-config-hide > a:hover {
   border-color: #2d8d88;
   background: #e4f4f0 !important;
   color: #176f6a !important;
