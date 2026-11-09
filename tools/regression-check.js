@@ -136,6 +136,12 @@ if (manifest) {
   assert(home.includes('nav-site-tagline') && coreCss.includes('.nav-site-tagline'), 'mobile nav renders the brand tagline with its styles')
   // 首页大标题不能被 -webkit-box 行裁切吃掉降部和投影
   assert(coreCss.includes('#page-header.full_page #site-title{display:block') && coreCss.includes('overflow:visible;-webkit-line-clamp:unset'), 'hero title paints outside its line box instead of being clipped')
+  // Twikoo 管理面板：.tk-admin 是整块面板（博主徽章是 .tk-master），
+  // 不能再被徽章规则刷成琥珀底 + 琥珀字，否则邮件设置等配置项白底白字看不清。
+  assert(coreCss.includes('#twikoo .tk-admin{border:0!important;background:color-mix(in srgb,var(--ui-surface-solid)'), 'twikoo admin panel uses the site surface instead of the amber badge fill')
+  assert(coreCss.includes('#twikoo .tk-admin{') && !/#twikoo \.tk-admin\{[^}]*--ui-amber-soft/.test(coreCss), 'twikoo admin panel no longer inherits the amber badge colors')
+  assert(coreCss.includes('#twikoo .tk-admin .tk-admin-config-title{color:var(--ui-ink)'), 'twikoo admin config labels are forced back to --ui-ink')
+  assert(coreCss.includes('#twikoo .tk-admin .tk-admin-config-item{grid-template-columns:minmax(0,1fr)'), 'twikoo admin config items stack in a single column on narrow screens')
 }
 
 const idCount = (html, id) => (html.match(new RegExp(`id=["']${id}["']`, 'g')) || []).length

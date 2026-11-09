@@ -218,10 +218,103 @@
   box-shadow: 0 2px 7px rgba(28, 39, 49, 0.14);
 }
 
+/* Twikoo 管理面板：.tk-admin 是整块「管理面板」，不是博主徽章（博主标识是
+   .tk-master）。上游默认黑色蒙层 + 白字，这里改成跟随站点的纸感面板；
+   面板内部大量文字写死 #ffffff，必须一并拉回 --ui-ink，否则浅色下白字白底。 */
 #twikoo .tk-admin {
-  border-color: var(--ui-amber) !important;
+  border: 0 !important;
+  background: color-mix(in srgb, var(--ui-surface-solid) 97%, transparent) !important;
+  box-shadow: inset 0 0 0 1px var(--ui-border);
+  color: var(--ui-ink) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+}
+
+#twikoo .tk-admin::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ui-ink) 24%, transparent);
+}
+
+#twikoo .tk-admin .tk-admin-close,
+#twikoo .tk-admin .tk-panel,
+#twikoo .tk-admin .tk-panel-title,
+#twikoo .tk-admin .tk-panel-logout,
+#twikoo .tk-admin .tk-login-title,
+#twikoo .tk-admin .tk-password,
+#twikoo .tk-admin .tk-login-msg,
+#twikoo .tk-admin .tk-login-msg a,
+#twikoo .tk-admin .tk-admin-comment a {
+  color: var(--ui-ink) !important;
+}
+
+#twikoo .tk-admin .tk-panel .tk-tabs {
+  border-bottom-color: var(--ui-border) !important;
+}
+
+#twikoo .tk-admin .tk-panel .tk-tab {
+  color: var(--ui-muted) !important;
+}
+
+#twikoo .tk-admin .tk-panel .tk-tab.__active {
+  border-bottom-color: var(--ui-teal) !important;
+  color: var(--ui-teal) !important;
+}
+
+#twikoo .tk-admin .tk-admin-actions {
+  border-bottom-color: var(--ui-border) !important;
+}
+
+#twikoo .tk-admin .tk-admin-security-alert-url {
+  background: var(--ui-surface-soft) !important;
+  color: var(--ui-ink) !important;
+}
+
+#twikoo .tk-admin .tk-admin-warn {
+  border-left-color: var(--ui-amber) !important;
   background: var(--ui-amber-soft) !important;
-  color: var(--ui-amber) !important;
+  color: var(--ui-ink) !important;
+}
+
+/* 配置管理里的标签/说明承担了大部分信息量，字号与行高一起放宽，
+   并把标签从 nowrap 改成可换行，窄屏不再被省略号吃掉。 */
+#twikoo .tk-admin .tk-admin-config-group-title {
+  color: var(--ui-heading) !important;
+}
+
+#twikoo .tk-admin .tk-admin-config-title {
+  color: var(--ui-ink) !important;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow: visible;
+  white-space: normal;
+}
+
+#twikoo .tk-admin .tk-admin-config-desc {
+  color: var(--ui-muted) !important;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+#twikoo .tk-admin .tk-admin-config-input .el-input__inner {
+  background: var(--ui-surface-soft) !important;
+  color: var(--ui-ink) !important;
+}
+
+/* 窄屏下 30% / 70% 的两列网格会把标签和说明都挤成竖条，改成上下排布。 */
+@media screen and (max-width: 768px) {
+  #twikoo .tk-admin .tk-panel {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  #twikoo .tk-admin .tk-admin-config-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  #twikoo .tk-admin .tk-admin-config-title {
+    margin-right: 0;
+    text-align: left;
+  }
 }
 
 [data-theme='dark'] #post-comment .comment-headline {
