@@ -1,6 +1,8 @@
 if theme.menu
   #sidebar
     #menu-mask
+    button#sidebar-close.sidebar-close(type="button" aria-label="关闭侧边栏" title="关闭侧边栏")
+      i.fas.fa-xmark(aria-hidden="true")
     #sidebar-menus
       .avatar-img.text-center
         img(src=url_for(theme.avatar.img) onerror=`this.onerror=null;this.src='${url_for(theme.error_img.flink)}'` alt="avatar")

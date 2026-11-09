@@ -5,6 +5,8 @@ nav#nav
         img.site-icon(src=url_for(theme.nav.logo) alt='Logo')
       if theme.nav.display_title
         span.site-name=config.title
+    if config.subtitle
+      span.nav-site-tagline= config.subtitle
     if globalPageType === 'post' && theme.nav.display_post_title
       a.nav-page-title(href=url_for('/'))
         span.site-name=(page.title || config.title)

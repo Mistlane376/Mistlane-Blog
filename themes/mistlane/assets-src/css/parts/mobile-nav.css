@@ -1,0 +1,229 @@
+/* Mobile navigation.
+   The phone header was a single line of text plus two bare glyphs, and once it
+   turned into a fixed bar it kept the translucent hero tint while the icons and
+   title switched to --font-color, which left dark text on a dark strip.
+   This gives the bar a real hierarchy: brand block with a tagline, icon buttons
+   that adapt to the current text colour, and a frosted surface when fixed. */
+
+/* #nav is 64px tall (site-polish), so the -60px parked offset left a 4px sliver
+   visible above the bar while it was fixed. */
+#page-header.nav-fixed #nav {
+  top: -64px;
+}
+
+/* Phone-only affordance: hidden on desktop, where the menu already shows. */
+#blog-info .nav-site-tagline {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  #nav {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  /* ---------- Brand block ---------- */
+  #blog-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1px;
+    min-width: 0;
+    overflow: visible;
+    white-space: normal;
+  }
+
+  #blog-info .nav-site-title {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+    border: 0;
+  }
+
+  #blog-info .site-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent), 0 5px 14px rgba(8, 26, 34, 0.16);
+  }
+
+  #blog-info .site-name {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 760;
+    letter-spacing: 0.005em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #blog-info .nav-site-tagline {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    line-height: 1.25;
+    opacity: 0.72;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #blog-info:has(.site-icon) .nav-site-tagline {
+    padding-left: 45px;
+  }
+
+  /* Fixed mode swaps the brand for the current page title (posts) or keeps the
+     site name; the tagline only stays on pages that have no post title. */
+  #page-header.nav-fixed #blog-info .nav-site-tagline {
+    display: none;
+  }
+
+  #page-header.nav-fixed #blog-info:not(:has(.nav-page-title)) .nav-site-tagline {
+    display: block;
+  }
+
+  /* head.styl hides #blog-info > a:first-child once fixed and reveals
+     a:last-child (the post title). The tagline now sits after the site title,
+     so on pages without a post title the brand would stay hidden. */
+  #page-header.nav-fixed #blog-info:not(:has(.nav-page-title)) > .nav-site-title {
+    display: flex !important;
+  }
+
+  /* ---------- Icon buttons ---------- */
+  /* The brand block is 50px tall (36px logo + tagline), so centring the actions
+     in the 64px bar puts them 7px below the logo/title centreline. Lift the
+     group so the buttons share the first line with the logo and site name. */
+  #nav #menus {
+    position: relative;
+    top: -7px;
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Post pages drop to a single-line title once fixed, so the brand is back to
+     one line and the actions belong on the bar's own centreline again. */
+  #page-header.nav-fixed #nav:has(.nav-page-title) #menus {
+    top: 0;
+  }
+
+  #nav #search-button {
+    display: inline-flex;
+    padding: 0;
+  }
+
+  #nav #search-button > .site-page,
+  #nav #toggle-menu > .site-page {
+    position: relative;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 0;
+    border-radius: 11px;
+    background: color-mix(in srgb, currentColor 6%, transparent);
+    font-size: 0.92rem;
+    line-height: 1;
+    text-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  #nav #search-button > .site-page > span {
+    display: none;
+  }
+
+  #nav #toggle-menu {
+    padding: 0;
+  }
+
+  /* 34px visual size, 44px touch target. */
+  #nav #search-button > .site-page::after,
+  #nav #toggle-menu > .site-page::after {
+    position: absolute;
+    inset: -4px;
+    content: '';
+  }
+
+  #nav #search-button > .site-page:hover,
+  #nav #toggle-menu > .site-page:hover {
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  #nav #search-button > .site-page:active,
+  #nav #toggle-menu > .site-page:active {
+    transform: scale(0.94);
+  }
+
+  /* ---------- Fixed surface ---------- */
+  #page-header.nav-fixed #nav {
+    background: color-mix(in srgb, var(--ui-surface-solid) 86%, transparent);
+    box-shadow: 0 1px 0 var(--ui-border), 0 14px 30px -24px rgba(10, 30, 40, 0.7);
+    -webkit-backdrop-filter: blur(18px) saturate(1.25);
+    backdrop-filter: blur(18px) saturate(1.25);
+  }
+
+  /* The full_page hero keeps its white type with !important, which turned the
+     new light fixed bar into white on white. */
+  #page-header.full_page.nav-fixed #nav .site-page,
+  #page-header.full_page.nav-fixed #nav .site-name,
+  #page-header.full_page.nav-fixed #nav .nav-site-tagline,
+  #page-header.full_page.nav-fixed #nav #toggle-menu,
+  #page-header.full_page.nav-fixed #nav #search-button .site-page {
+    color: var(--font-color) !important;
+    text-shadow: none !important;
+  }
+
+  #page-header.full_page.nav-fixed #nav .site-page:hover {
+    background: var(--ui-teal-soft);
+    color: var(--ui-teal) !important;
+  }
+
+  /* ---------- Post title in fixed mode ---------- */
+  #page-header.nav-fixed #nav .nav-page-title {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    border: 0;
+  }
+
+  #page-header.nav-fixed #nav .nav-page-title > .site-name:first-child {
+    position: relative;
+    overflow: hidden;
+    padding-left: 12px;
+    font-size: 15px;
+    font-weight: 740;
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #page-header.nav-fixed #nav .nav-page-title > .site-name:first-child::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 3px;
+    height: 15px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--ui-teal), var(--ui-blue));
+    content: '';
+    transform: translateY(-50%);
+  }
+}
+
+/* Narrow phones: drop the tagline before the site name starts to truncate. */
+@media screen and (max-width: 359px) {
+  #blog-info .nav-site-tagline {
+    display: none;
+  }
+}

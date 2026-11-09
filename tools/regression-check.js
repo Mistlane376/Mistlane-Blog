@@ -129,6 +129,11 @@ if (manifest) {
   assert(!coreCss.includes('.about-intro') && !coreCss.includes('.about-site-grid'), 'core css excludes about-page styles')
   assert(coreCss.includes('.motion-pending') && coreCss.includes('.motion-page-enter'), 'core css ships the global motion system')
   assert(coreCss.includes('.mistlane-reading-progress') && coreCss.includes('.site-page.is-current'), 'core css ships navigation and reading progress polish')
+  // 移动端抽屉：关闭按钮必须存在，且层级隔离样式随 core 一起加载
+  assert(home.includes('id="sidebar-close"'), 'mobile drawer ships an explicit close button')
+  assert(coreCss.includes('.mobile-sidebar-open') && coreCss.includes('#sidebar .sidebar-close'), 'core css keeps ambient effects and the music dock below the mobile drawer')
+  // 移动端导航：品牌副标题与图标按钮样式随 core 加载
+  assert(home.includes('nav-site-tagline') && coreCss.includes('.nav-site-tagline'), 'mobile nav renders the brand tagline with its styles')
 }
 
 const idCount = (html, id) => (html.match(new RegExp(`id=["']${id}["']`, 'g')) || []).length

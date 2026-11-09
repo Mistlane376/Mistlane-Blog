@@ -1,0 +1,96 @@
+/* Mobile drawer fixes.
+   1. The drawer (#sidebar-menus) sits at z-index 103 with its mask at 102, but
+      the ambient layers (petal/star/rain, z-index 200) and the floating music
+      dock (z-index 999) were painted on top of it: petals drifted across the
+      menu and the dock covered the last entry, swallowing taps on it.
+   2. The page behind the drawer kept scrolling, so the menu could be dragged
+      out of view while it was open.
+   3. On phones the only way out was tapping the narrow mask strip, so the
+      drawer gets an explicit close button. */
+
+html.mobile-sidebar-open .music-float-dock {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html.mobile-sidebar-open .petal-layer,
+html.mobile-sidebar-open .night-star-layer,
+html.mobile-sidebar-open .day-rain-layer,
+html.mobile-sidebar-open .mistlane-reading-progress,
+html.mobile-sidebar-open #rightside {
+  z-index: 90 !important;
+}
+
+/* Placed outside #sidebar-menus on purpose: the drawer is a transformed
+   scroll container, so a fixed child would scroll away with its content. */
+#sidebar .sidebar-close {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top, 0px));
+  right: 14px;
+  z-index: 104;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--font-color) 16%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--font-color) 8%, transparent);
+  color: var(--font-color);
+  font-size: 0.86rem;
+  cursor: pointer;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+html.mobile-sidebar-open #sidebar .sidebar-close {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#sidebar .sidebar-close:hover,
+#sidebar .sidebar-close:focus-visible {
+  border-color: var(--ui-teal);
+  background: var(--ui-teal-soft);
+  color: var(--ui-teal);
+  transform: rotate(90deg);
+}
+
+/* Keep the drawer clear of the notch and give the last entry room to breathe. */
+#sidebar-menus {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#sidebar-menus .menus_items {
+  margin-bottom: 26px;
+}
+
+@media screen and (max-width: 768px) {
+  #sidebar-menus .menus_items .site-page {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  #sidebar-menus .menus_items .site-page > i:first-child {
+    width: 26px;
+    flex: none;
+    text-align: center;
+  }
+
+  #sidebar-menus .menus_items .menus_item_child .site-page {
+    min-height: 40px;
+  }
+
+  #sidebar-menus .site-data {
+    padding: 0 20px;
+  }
+}

@@ -12,3 +12,5 @@
 @import './parts/code-enhancements.css';
 @import './parts/motion.css';
 @import './parts/interface-refinement.css';
+@import './parts/mobile-sidebar.css';
+@import './parts/mobile-nav.css';

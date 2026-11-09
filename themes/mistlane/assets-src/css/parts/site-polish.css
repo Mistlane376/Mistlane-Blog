@@ -1474,14 +1474,17 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
   box-shadow: none !important;
   transform: none;
 }
+/* The mobile drawer background follows the theme (white in light mode), so the
+   counters must follow --font-color instead of a hardcoded white. */
 #sidebar .site-data .length-num {
   padding: 0 !important;
   background: transparent !important;
-  color: #fff !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  color: var(--font-color) !important;
+  text-shadow: none;
 }
 #sidebar .site-data .headline {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: var(--font-color) !important;
+  opacity: 0.62;
 }
 #aside-content .card-info #card-info-btn { width: 100%; min-height: 38px; margin: 0; padding: 0 14px; border: 1px solid var(--ui-teal); border-radius: 5px !important; background: var(--ui-teal); font-size: 0.82rem; line-height: 36px; }
 #aside-content .card-info #card-info-btn::before { display: none; }
