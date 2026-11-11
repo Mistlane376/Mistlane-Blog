@@ -62,9 +62,7 @@ code_blocks:
 #   icon: link || the description || color
 social:
   fab fa-github: https://github.com/Mistlane376 || Github || '#24292e'
-  fab fa-qq: /images/QQ.jpg || QQ || '#12b7f5'
-  fab fa-weixin: /images/weixin.jpg || 微信 || '#07c160'
-  fab fa-tiktok: /images/douyin.jpg || 抖音 || '#000000'
+  fab fa-qq: mqqapi://card/show_pslcard?src_type=internal&version=1&uin=904998850&card_type=group&source=qrcode || QQ群 904998850 || '#12b7f5'
   fas fa-play: https://space.bilibili.com/1146476510 || B站 || '#fb7299'
   fas fa-code: https://blog.csdn.net/ljl37 || CSDN || '#fc5531'
 
@@ -274,9 +272,8 @@ footer:
       </nav>
       <div class="footer-social" aria-label="社交链接">
         <a href="https://github.com/Mistlane376" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a href="mqqapi://card/show_pslcard?src_type=internal&amp;version=1&amp;uin=904998850&amp;card_type=group&amp;source=qrcode" target="_blank" rel="noopener" title="QQ群 904998850" aria-label="QQ群 904998850"><i class="fab fa-qq"></i></a>
         <a href="https://space.bilibili.com/1146476510" target="_blank" rel="noopener" title="B站" aria-label="B站"><i class="fas fa-play"></i></a>
-        <a href="/images/QQ.jpg" target="_blank" title="QQ" aria-label="QQ"><i class="fab fa-qq"></i></a>
-        <a href="/images/weixin.jpg" target="_blank" title="微信" aria-label="微信"><i class="fab fa-weixin"></i></a>
         <a href="https://blog.csdn.net/ljl37" target="_blank" rel="noopener" title="CSDN" aria-label="CSDN"><i class="fas fa-code"></i></a>
       </div>
       <a class="footer-record" href="https://icp.gov.moe/?keyword=20263737" target="_blank" rel="noopener" title="萌ICP备20263737号">

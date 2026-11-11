@@ -153,7 +153,7 @@
 .aside-column ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--ui-teal) 55%, transparent); }
 
 [data-theme='dark'] .aside-column .card-widget { box-shadow: 0 8px 24px rgba(0, 0, 0, .16); }
-[data-theme='dark'] .card-info-social-icons .social-icon i.fa-github, [data-theme='dark'] .card-info-social-icons .social-icon i.fa-tiktok { filter: invert(1); }
+[data-theme='dark'] .card-info-social-icons .social-icon i.fa-github { filter: invert(1); }
 
 @media screen and (min-width: 1280px) and (max-width: 1480px) {
   #content-inner.mistlane-double-aside { grid-template-columns: 238px minmax(0, 1fr) 238px; gap: 18px; }
