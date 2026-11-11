@@ -1498,7 +1498,7 @@ html.hide-aside #content-inner.home-bento-layout #aside-content {
 #aside-content .card-info #card-info-btn { width: 100%; min-height: 38px; margin: 0; padding: 0 14px; border: 1px solid var(--ui-teal); border-radius: 5px !important; background: var(--ui-teal); font-size: 0.82rem; line-height: 36px; }
 #aside-content .card-info #card-info-btn::before { display: none; }
 #aside-content .card-info .card-info-social-icons { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; padding: 14px 0 0; }
-#aside-content .card-info .card-info-social-icons .social-icon { display: inline-flex; align-items: center; justify-content: center; width: 31px; height: 31px; margin: 0; border: 1px solid var(--ui-border); border-radius: 5px; font-size: 0.82rem; }
+#aside-content .card-info .card-info-social-icons .social-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin: 0; border: 0; border-radius: 50%; font-size: 1.02rem; }
 #aside-content .card-info-social-icons .social-icon:hover { background: var(--ui-teal-soft); box-shadow: none; transform: translateY(-1px); }
 #aside-content .card-announcement { border-left: 3px solid var(--ui-coral); }
 #aside-content .card-announcement .announcement_content { color: var(--ui-muted); font-size: 0.84rem; line-height: 1.72; }

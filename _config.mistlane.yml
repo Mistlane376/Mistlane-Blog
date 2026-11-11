@@ -62,7 +62,7 @@ code_blocks:
 #   icon: link || the description || color
 social:
   fab fa-github: https://github.com/Mistlane376 || Github || '#24292e'
-  fab fa-qq: mqqapi://card/show_pslcard?src_type=internal&version=1&uin=904998850&card_type=group&source=qrcode || QQ群 904998850 || '#12b7f5'
+  fab fa-qq: https://qm.qq.com/q/XPZmFsynse || QQ群：赛博小生姜会梦到电子猫条吗 || '#12b7f5'
   fas fa-play: https://space.bilibili.com/1146476510 || B站 || '#fb7299'
   fas fa-code: https://blog.csdn.net/ljl37 || CSDN || '#fc5531'
 
@@ -272,7 +272,7 @@ footer:
       </nav>
       <div class="footer-social" aria-label="社交链接">
         <a href="https://github.com/Mistlane376" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub"><i class="fab fa-github"></i></a>
-        <a href="mqqapi://card/show_pslcard?src_type=internal&amp;version=1&amp;uin=904998850&amp;card_type=group&amp;source=qrcode" target="_blank" rel="noopener" title="QQ群 904998850" aria-label="QQ群 904998850"><i class="fab fa-qq"></i></a>
+        <a href="https://qm.qq.com/q/XPZmFsynse" target="_blank" rel="noopener" title="QQ群：赛博小生姜会梦到电子猫条吗" aria-label="QQ群"><i class="fab fa-qq"></i></a>
         <a href="https://space.bilibili.com/1146476510" target="_blank" rel="noopener" title="B站" aria-label="B站"><i class="fas fa-play"></i></a>
         <a href="https://blog.csdn.net/ljl37" target="_blank" rel="noopener" title="CSDN" aria-label="CSDN"><i class="fas fa-code"></i></a>
       </div>
