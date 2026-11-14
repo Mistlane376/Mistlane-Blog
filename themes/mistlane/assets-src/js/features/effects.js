@@ -1,107 +1,99 @@
 import { onMount } from '../lib/lifecycle'
 import { readLocal, writeLocal } from '../lib/storage'
+// Canvas 雨滴 / 夜空引擎以纯脚本形式挂到 window（见各自文件头注释）。
+import './rain-canvas'
+import './night-sky-canvas'
 
 const storageKey = 'mistlane-effects-enabled-v2'
-const effectsSelector = '.petal-layer, .day-rain-layer, .night-star-layer'
+const effectsSelector = '.night-sky-canvas-layer, .rain-canvas-layer, .petal-layer, .night-star-layer'
 const compactQuery = window.matchMedia('(max-width: 768px)')
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 
 let effectsEnabled = readLocal(storageKey, true) !== false
 let renderFrame = 0
+let rainEngine = null
+let nightEngine = null
 
-const removeEffects = () => document.querySelectorAll(effectsSelector).forEach(layer => layer.remove())
-
-const createLayer = className => {
-  const layer = document.createElement('div')
-  layer.className = className
-  layer.setAttribute('aria-hidden', 'true')
-  return layer
+// 先停掉 rAF / 解绑事件，再移除节点，避免 PJAX / 主题切换后残留循环。
+const removeEffects = () => {
+  if (rainEngine) {
+    rainEngine.destroy()
+    rainEngine = null
+  }
+  if (nightEngine) {
+    nightEngine.destroy()
+    nightEngine = null
+  }
+  document.querySelectorAll(effectsSelector).forEach(layer => layer.remove())
 }
 
 const reducedMotion = () => reducedMotionQuery.matches || document.documentElement.dataset.reduceMotion === 'true'
+
+// canvas 必须在挂载到 DOM 之后再测量尺寸，因此由 renderEffects 在 append 后调用。
+// 日间（浅色主题）下雨；夜间（深色主题）换成 Canvas 2D 的银河星空 + 落花。
+const mountRain = canvas => {
+  const createRainEngine = window.MistlaneRain && window.MistlaneRain.createRainEngine
+  if (!createRainEngine) return
+  rainEngine = createRainEngine(canvas, {
+    // 博客浅色底（#c6e3eb）需要深冷蓝雨丝才有对比度；氛围层压到很淡，不干扰阅读。
+    palette: 'light',
+    atmosphere: 0.45,
+    density: compactQuery.matches ? 0.00014 : 0.00018
+  })
+  rainEngine.start()
+}
+
+const mountNightSky = canvas => {
+  const createNightSkyEngine = window.MistlaneNightSky && window.MistlaneNightSky.createNightSkyEngine
+  if (!createNightSkyEngine) return
+  const compact = compactQuery.matches
+  nightEngine = createNightSkyEngine(canvas, {
+    // 博客正文在前景：透明叠加模式，不铺不透明天幕；移动端减少粒子并降一层星云。
+    overlay: true,
+    starCount: compact ? 540 : 900,
+    milkyWayDensity: compact ? 0.8 : 1.0,
+    nebulaLayers: compact ? 2 : 3,
+    petalCount: compact ? 58 : 110,
+    // 碎花螺旋在正文前景上要更收敛：半径小、每批少、密度低，叠加模式再压淡到 0.60。
+    swirlRadius: compact ? 16 : 22,
+    swirlPerEmit: compact ? 2 : 3,
+    swirlDensity: compact ? 0.55 : 0.8,
+    swirlPull: 0.68,            // 博客正文上更聚成一团，避免碎花沿整条轨迹散开
+    swirlLife: 1.0,
+    // 点击绽放：正文前景上比预览稍收敛，但保持「一圈碎花绽开」的辨识度。
+    // 叠加模式下背景是浅色插画，碎花要比暗底再大一点、亮一点才看得清。
+    bloomCount: compact ? 12 : 16,
+    bloomRadius: compact ? 42 : 50,
+    bloomLife: 1.25,
+    bloomSize: 1.35,
+    bloomGlow: 0.58,
+    vignette: 0.52,
+    grain: 0.042,
+    maxDpr: 2
+  })
+  nightEngine.start()
+}
 
 const renderEffects = () => {
   renderFrame = 0
   removeEffects()
   if (!effectsEnabled || reducedMotion()) return
 
-  const compact = compactQuery.matches
   const fragment = document.createDocumentFragment()
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
-
-  if (isDark) {
-    const petals = createLayer('petal-layer')
-    const palettes = ['petal-sky', 'petal-sky', 'petal-sun', 'petal-sun', 'petal-rose']
-    for (let index = 0; index < (compact ? 18 : 34); index += 1) {
-      const petal = document.createElement('span')
-      const size = 14 + Math.random() * 14
-      const opacity = 0.6 + Math.random() * 0.3
-      const drift = -24 + Math.random() * 48
-      const sway = -7 + Math.random() * 14
-      petal.className = `petal ${palettes[index % palettes.length]}`
-      petal.style.setProperty('--petal-left', `${Math.random() * 100}vw`)
-      petal.style.setProperty('--petal-size', `${size}px`)
-      petal.style.setProperty('--petal-opacity', `${opacity}`)
-      petal.style.setProperty('--petal-night-opacity', `${opacity}`)
-      petal.style.setProperty('--petal-duration', `${6.5 + Math.random() * 5.5}s`)
-      petal.style.setProperty('--petal-delay', `${-Math.random() * 20}s`)
-      petal.style.setProperty('--petal-drift', `${drift}vw`)
-      petal.style.setProperty('--petal-night-drift', `${drift * 0.65}vw`)
-      petal.style.setProperty('--petal-sway', `${sway}vw`)
-      petal.style.setProperty('--petal-spin', `${2.8 + Math.random() * 3.8}s`)
-      petals.appendChild(petal)
-    }
-
-    const stars = createLayer('night-star-layer')
-    for (let index = 0; index < (compact ? 18 : 30); index += 1) {
-      const star = document.createElement('span')
-      star.className = 'night-star'
-      star.style.setProperty('--effect-left', `${Math.random() * 100}vw`)
-      star.style.setProperty('--effect-top', `${Math.random() * 92}vh`)
-      star.style.setProperty('--effect-size', `${8 + Math.random() * 10}px`)
-      star.style.setProperty('--effect-opacity', `${0.7 + Math.random() * 0.28}`)
-      star.style.setProperty('--effect-delay', `${-Math.random() * 9}s`)
-      star.style.setProperty('--effect-duration', `${2 + Math.random() * 2.4}s`)
-      stars.appendChild(star)
-    }
-    for (let index = 0; index < (compact ? 2 : 3); index += 1) {
-      const shootingStar = document.createElement('span')
-      shootingStar.className = 'shooting-star'
-      shootingStar.style.setProperty('--shooting-left', `${12 + Math.random() * 72}vw`)
-      shootingStar.style.setProperty('--shooting-top', `${5 + Math.random() * 45}vh`)
-      shootingStar.style.setProperty('--shooting-delay', `${-index * 3.4}s`)
-      shootingStar.style.setProperty('--shooting-duration', `${8 + index * 2.1}s`)
-      stars.appendChild(shootingStar)
-    }
-    fragment.append(petals, stars)
-  } else {
-    const rain = createLayer('day-rain-layer')
-    for (let index = 0; index < (compact ? 22 : 42); index += 1) {
-      const impact = document.createElement('span')
-      impact.className = 'rain-impact'
-      impact.style.setProperty('--impact-left', `${4 + Math.random() * 92}vw`)
-      impact.style.setProperty('--impact-top', `${8 + Math.random() * 84}vh`)
-      impact.style.setProperty('--impact-size', `${compact ? 36 + Math.random() * 46 : 46 + Math.random() * 66}px`)
-      impact.style.setProperty('--impact-delay', `${-Math.random() * 7}s`)
-      impact.style.setProperty('--impact-duration', `${2.6 + Math.random() * 1.8}s`)
-      impact.style.setProperty('--rain-angle', `${7 + Math.random() * 8}deg`)
-      impact.style.setProperty('--rain-length', `${compact ? 24 + Math.random() * 14 : 30 + Math.random() * 20}px`)
-      impact.style.setProperty('--rain-width', `${1.3 + Math.random() * 0.8}px`)
-      impact.style.setProperty('--rain-opacity', `${0.65 + Math.random() * 0.25}`)
-      const drop = document.createElement('span')
-      drop.className = 'rain-drop'
-      const ripple = document.createElement('span')
-      ripple.className = 'water-ripple'
-      impact.append(drop, ripple)
-      rain.appendChild(impact)
-    }
-    fragment.appendChild(rain)
-  }
+  // 夜间：单个 canvas 同时承载银河 / 星野 / 流星 / 落花，旧的 DOM 关键帧已移除。
+  const effectCanvas = document.createElement('canvas')
+  effectCanvas.className = isDark ? 'night-sky-canvas-layer' : 'rain-canvas-layer'
+  effectCanvas.setAttribute('aria-hidden', 'true')
+  fragment.appendChild(effectCanvas)
 
   document.body.appendChild(fragment)
+  if (isDark) mountNightSky(effectCanvas)
+  else mountRain(effectCanvas)
   syncPaused()
 }
 
+// 两套 Canvas 引擎都自己监听 visibilitychange 停 rAF；class 保留给其他装饰动画。
 const syncPaused = () => {
   document.documentElement.classList.toggle('effects-paused', document.hidden)
 }

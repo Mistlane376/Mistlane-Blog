@@ -1,8 +1,8 @@
 /* Mobile drawer fixes.
    1. The drawer (#sidebar-menus) sits at z-index 103 with its mask at 102, but
-      the ambient layers (petal/star/rain, z-index 200) and the floating music
-      dock (z-index 999) were painted on top of it: petals drifted across the
-      menu and the dock covered the last entry, swallowing taps on it.
+      the ambient canvas layers (night sky / rain, z-index 199) and the floating
+      music dock (z-index 999) were painted on top of it: petals drifted across
+      the menu and the dock covered the last entry, swallowing taps on it.
    2. The page behind the drawer kept scrolling, so the menu could be dragged
       out of view while it was open.
    3. On phones the only way out was tapping the narrow mask strip, so the
@@ -15,9 +15,8 @@ html.mobile-sidebar-open .music-dock-handle {
   pointer-events: none !important;
 }
 
-html.mobile-sidebar-open .petal-layer,
-html.mobile-sidebar-open .night-star-layer,
-html.mobile-sidebar-open .day-rain-layer,
+html.mobile-sidebar-open .night-sky-canvas-layer,
+html.mobile-sidebar-open .rain-canvas-layer,
 html.mobile-sidebar-open .mistlane-reading-progress,
 html.mobile-sidebar-open #rightside {
   z-index: 90 !important;

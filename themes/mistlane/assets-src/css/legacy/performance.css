@@ -5,11 +5,5 @@
   transition-property: transform, opacity;
 }
 
-/* Do not keep painting decorative layers in a background tab. */
-html[data-page-hidden='true'] .petal,
-html[data-page-hidden='true'] .petal::before,
-html[data-page-hidden='true'] .rain-drop,
-html[data-page-hidden='true'] .water-ripple,
-html[data-page-hidden='true'] .night-star {
-  animation-play-state: paused !important;
-}
+/* 两套 Canvas 特效引擎都在 visibilitychange 时自行停止 rAF，
+   后台标签页不再有装饰层持续绘制。 */

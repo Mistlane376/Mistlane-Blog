@@ -4,7 +4,7 @@
 :where(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--ui-teal); outline-offset: 4px; }
 button, input { -webkit-tap-highlight-color: transparent; }
 body { background-image: none; }
-.music-room-active .day-rain-layer, .music-room-active .night-star-layer, .music-room-active .petal-layer { opacity: .55; }
+.music-room-active .night-sky-canvas-layer, .music-room-active .rain-canvas-layer { opacity: .55; }
 #recent-posts > .recent-post-item, #aside-content .card-widget, #aside-left .card-widget { border-radius: 14px; }
 #nav .menus_items .menus_item .menus_item_child { padding: 7px; border-color: var(--ui-border); border-radius: 12px; background: var(--ui-surface-solid); background: color-mix(in srgb, var(--ui-surface-solid) 95%, transparent); box-shadow: var(--ui-shadow-md); }
 #nav .menus_items .menus_item .menus_item_child li a,

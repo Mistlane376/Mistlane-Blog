@@ -65,5 +65,8 @@ private-albums/
 # 本地 Agent 工作笔记（属于个人记录，不随站点发布）
 .workbuddy/
 
+# 特效专项调试页（本地调参用，引擎源码已入库为 assets-src/js/features/*-canvas.js）
+tools/*-preview.html
+
 .vercel
 .env*

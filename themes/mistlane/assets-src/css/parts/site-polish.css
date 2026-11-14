@@ -145,259 +145,46 @@ body {
     radial-gradient(ellipse 15px 7px at 33% 80%, transparent 67%, rgba(151, 188, 211, 0.18) 69% 72%, transparent 74%);
 }
 
-/* Daytime keeps rain and ripples while reserving petals for the night scene. */
+/* 日间雨丝保留 #web_bg 装饰；夜间由 Canvas 引擎绘制银河 / 星空 / 落花。 */
 html:not([data-theme='dark']) #web_bg::after {
   display: none;
 }
 
-html:not([data-theme='dark']) .petal-layer {
-  display: none;
-}
-
-/* Independently timed petals make the motion visible without becoming a screen effect. */
-.petal-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.effects-disabled .petal-layer,
-.effects-disabled .day-rain-layer,
-.effects-disabled .night-star-layer {
-  display: none !important;
-}
-
-.petal {
-  position: absolute;
-  top: -12vh;
-  left: var(--petal-left);
-  width: var(--petal-size);
-  height: calc(var(--petal-size) * 0.68);
-  opacity: 0;
-  will-change: transform, opacity;
-  animation: petal-fall var(--petal-duration) var(--petal-delay) linear infinite;
-}
-
-.petal-sky { --petal-color: #78b9d8; }
-.petal-sun { --petal-color: #efbc68; }
-.petal-rose { --petal-color: #dba0b3; }
-
-.petal::before {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 1px solid color-mix(in srgb, var(--petal-color) 70%, white);
-  border-radius: 100% 0 100% 0;
-  background: color-mix(in srgb, var(--petal-color) 60%, transparent);
-  box-shadow: inset 3px -2px 5px rgba(255, 255, 255, 0.32);
-  animation: petal-spin var(--petal-spin) ease-in-out infinite alternate;
-}
-
-@keyframes petal-fall {
-  0% { opacity: 0; transform: translate3d(0, -12vh, 0) rotate(0deg); }
-  8% { opacity: var(--petal-opacity); }
-  42% { transform: translate3d(calc(var(--petal-drift) + var(--petal-sway)), 44vh, 0) rotate(70deg); }
-  70% { transform: translate3d(calc(var(--petal-drift) - var(--petal-sway)), 72vh, 0) rotate(-36deg); }
-  88% { opacity: var(--petal-opacity); }
-  100% { opacity: 0; transform: translate3d(var(--petal-drift), 118vh, 0) rotate(160deg); }
-}
-
-@keyframes petal-spin {
-  from { transform: rotate(-28deg) scale(0.88); }
-  to { transform: rotate(222deg) scale(1.08); }
-}
-
-[data-theme='dark'] .petal {
-  animation-name: night-petal-fall;
-  filter: saturate(0.9) brightness(0.96);
-}
-
-[data-theme='dark'] .petal-sky { --petal-color: #78d3ef; }
-[data-theme='dark'] .petal-sun { --petal-color: #b9a2eb; }
-[data-theme='dark'] .petal-rose { --petal-color: #e49cbf; }
-
-[data-theme='dark'] .petal::before {
-  animation-name: night-petal-spin;
-  box-shadow: inset 3px -2px 5px rgba(207, 231, 255, 0.22);
-}
-
-@keyframes night-petal-fall {
-  0% { opacity: 0; transform: translate3d(0, -12vh, 0) rotate(0deg); }
-  10% { opacity: var(--petal-night-opacity); }
-  35% { transform: translate3d(calc(var(--petal-night-drift) + var(--petal-sway)), 35vh, 0) rotate(62deg); }
-  68% { transform: translate3d(calc(var(--petal-night-drift) - var(--petal-sway)), 68vh, 0) rotate(-32deg); }
-  88% { opacity: var(--petal-night-opacity); }
-  100% { opacity: 0; transform: translate3d(var(--petal-drift), 118vh, 0) rotate(142deg); }
-}
-
-@keyframes night-petal-spin {
-  from { transform: rotate(18deg) scale(0.8); }
-  to { transform: rotate(-196deg) scale(1.04); }
-}
-
-.day-rain-layer,
-.night-star-layer {
+/* 日间雨 / 夜间夜空共用一个全屏 canvas 层；位图尺寸由引擎按 DPR 设置。
+   pointer-events:none 保证绝不拦截正文点击；引擎自己监听 visibilitychange 停 rAF。 */
+.night-sky-canvas-layer,
+.rain-canvas-layer {
   position: fixed;
   inset: 0;
   z-index: 199;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.rain-impact {
-  position: absolute;
-  top: var(--impact-top);
-  left: var(--impact-left);
-  width: var(--impact-size);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-}
-
-.rain-drop {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  width: var(--rain-width, 1.5px);
-  height: var(--rain-length, 22px);
-  opacity: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, transparent, rgba(91, 162, 153, .65) 42%, #e1fff6);
-  box-shadow: 0 0 5px rgba(66, 145, 136, .22), 1px 0 1px rgba(255,255,255,.7);
-  transform: translateX(-50%) rotate(var(--rain-angle, 12deg));
-  will-change: transform, opacity;
-  animation: rain-drop var(--impact-duration) var(--impact-delay) linear infinite;
-}
-
-.water-ripple {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  display: block;
   width: 100%;
-  aspect-ratio: 2.7;
-  border: 1.5px solid rgba(68, 144, 137, .62);
-  border-radius: 50%;
-  box-shadow: 0 1px 1px rgba(255,255,255,.85), 0 0 12px rgba(104, 193, 185, .18), inset 0 1px 1px rgba(255,255,255,.8);
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.22);
-  will-change: transform, opacity;
-  animation: water-ripple var(--impact-duration) var(--impact-delay) ease-out infinite;
-}
-
-.water-ripple::after {
-  content: '';
-  position: absolute;
-  inset: 18%;
-  border: 1px solid rgba(77, 160, 150, .42);
-  border-radius: inherit;
-}
-
-@keyframes rain-drop {
-  0% { opacity: 0; transform: translate(calc(-50% - 32px), -180px) rotate(var(--rain-angle, 12deg)); }
-  11% { opacity: var(--rain-opacity, 0.92); }
-  37% { opacity: var(--rain-opacity, 0.9); transform: translate(-50%, 0) rotate(var(--rain-angle, 12deg)); }
-  42%, 100% { opacity: 0; transform: translate(-50%, 0) rotate(var(--rain-angle, 12deg)); }
-}
-
-@keyframes water-ripple {
-  0%, 36% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
-  44% { opacity: .88; transform: translate(-50%, -50%) scale(0.38); }
-  74% { opacity: .48; }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
-}
-
-.night-star-layer,
-.night-star {
-  display: none;
-}
-
-[data-theme='dark'] .day-rain-layer {
-  display: none;
-}
-
-[data-theme='dark'] .night-star-layer {
-  display: block;
-}
-
-[data-theme='dark'] .night-star {
-  display: block;
-  position: absolute;
-  top: var(--effect-top);
-  left: var(--effect-left);
-  width: var(--effect-size);
-  height: var(--effect-size);
-  opacity: 0;
-  animation: night-twinkle var(--effect-duration) var(--effect-delay) ease-in-out infinite;
-}
-
-[data-theme='dark'] .night-star::before,
-[data-theme='dark'] .night-star::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  background: #d5efff;
-  box-shadow: 0 0 9px rgba(144, 211, 255, 0.8);
-  transform: translate(-50%, -50%);
-}
-
-[data-theme='dark'] .night-star::before {
-  width: 1.6px;
   height: 100%;
+  pointer-events: none;
+  /* 独立合成层。没有这几行时，全屏 fixed 画布多数情况下仍留在主层里，
+     60fps 的动画会把导航、卡片阴影、毛玻璃一起拖进每帧重绘 —— 滚动时掉帧
+     主要就是这个原因。提升为独立层后，每帧只重新合成这一层纹理。
+     contain 再隔离布局/绘制，避免画布更新触发祖先的布局失效。 */
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout paint style;
+  backface-visibility: hidden;
 }
 
-[data-theme='dark'] .night-star::after {
-  width: 100%;
-  height: 1.6px;
+/* 兜底：JS 按主题只挂载对应引擎，避免 PJAX 切换瞬间串场。 */
+html:not([data-theme='dark']) .night-sky-canvas-layer,
+[data-theme='dark'] .rain-canvas-layer {
+  display: none;
 }
 
-@keyframes night-twinkle {
-  0%, 100% { opacity: 0.07; transform: rotate(0deg) scale(0.5); }
-  50% { opacity: var(--effect-opacity, 0.92); transform: rotate(45deg) scale(1); }
-}
-
-.shooting-star {
-  position: absolute;
-  top: var(--shooting-top);
-  left: var(--shooting-left);
-  width: 130px;
-  height: 2px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, transparent, rgba(151,212,255,.6) 70%, #f0ffff);
-  box-shadow: 0 0 8px rgba(164,220,255,.55);
-  opacity: 0;
-  animation: night-shooting-star var(--shooting-duration) var(--shooting-delay) linear infinite;
-}
-
-@keyframes night-shooting-star {
-  0% { opacity: 0; transform: translate3d(-180px,-110px,0) rotate(32deg) scaleX(.5); }
-  3% { opacity: .9; }
-  12% { opacity: 0; transform: translate3d(300px,190px,0) rotate(32deg) scaleX(1); }
-  100% { opacity: 0; transform: translate3d(300px,190px,0) rotate(32deg) scaleX(1); }
-}
-
-html.effects-paused .petal,
-html.effects-paused .petal::before,
-html.effects-paused .rain-drop,
-html.effects-paused .water-ripple,
-html.effects-paused .night-star,
-html.effects-paused .shooting-star {
-  animation-play-state: paused;
-}
-
-@media (max-width: 768px) {
-  .petal:nth-child(n + 19) {
-    display: none;
-  }
-
+.effects-disabled .night-sky-canvas-layer,
+.effects-disabled .rain-canvas-layer {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .petal-layer,
-  .day-rain-layer,
-  .night-star-layer {
+  .night-sky-canvas-layer,
+  .rain-canvas-layer {
     display: none;
   }
 }
