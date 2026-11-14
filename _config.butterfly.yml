@@ -710,7 +710,7 @@ CDN:
     # snackbar:
     # snackbar_css:
     # translate:
-    twikoo: https://cdn.jsdmirror.com/npm/twikoo@1.7.15/dist/twikoo.all.min.js
+    twikoo: https://cdn.jsdmirror.com/npm/twikoo@1.7.24/dist/twikoo.all.min.js
     # typed:
     utils: https://cdn.jsdmirror.com/npm/hexo-theme-butterfly@5.6.1/source/js/utils.min.js
     # valine:

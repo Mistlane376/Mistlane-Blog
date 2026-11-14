@@ -714,7 +714,7 @@ CDN:
     # snackbar:
     # snackbar_css:
     # translate:
-    twikoo: https://cdn.jsdmirror.com/npm/twikoo@1.7.15/dist/twikoo.all.min.js
+    twikoo: https://cdn.jsdmirror.com/npm/twikoo@1.7.24/dist/twikoo.all.min.js
     typed: /vendor/typed/typed.umd.min.js
     utils: /js/utils.js
     # valine:
