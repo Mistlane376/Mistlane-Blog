@@ -176,7 +176,7 @@ cd ~/domjudge
 nano docker-compose.yml
 ```
 
-将以下内容**完整复制**到文件中（**注意**：请将 `JUDGEDAEMON_PASSWORD` 占位符替换为实际密码，见后续步骤）：
+将以下内容**完整复制**到文件中（**注意**：请把 `CHANGE_ME_root_password`、`CHANGE_ME_domjudge_password` 和 `JUDGEDAEMON_PASSWORD` 换成**你自己生成的强密码**，见后续步骤。文中出现的所有口令都只是占位符，切勿原样照抄，也不要把真实口令写进任何公开文章或仓库）：
 
 ```yaml
 services:
@@ -339,7 +339,7 @@ DOMjudge会随机生成一个管理员密码，执行以下命令获取：
 docker exec domserver cat /opt/domjudge/domserver/etc/initial_admin_password.secret
 ```
 
-屏幕上会出现一串乱码似的字符（比如 `REDACTED_admin_password`），**立刻记下来！** 这是你登录后台的唯一钥匙。
+屏幕上会出现一串乱码似的字符（形如 `xK9mQ2vT7p`），**立刻记下来！** 这是你登录后台的唯一钥匙。
 
 > 💡 **如果这个文件不存在或密码无效**，可以使用以下命令重置 admin 密码：
 > ```bash
@@ -737,12 +737,12 @@ volumes:
 
 部署过程中，这四个东西**丢一个都寸步难行**：
 
-| 序号 | 内容                   | 示例              |
+| 序号 | 内容                   | 说明              |
 | :--- | :--------------------- | :---------------- |
-| 1️⃣    | 服务器公网IP           | `123.45.67.89`    |
-| 2️⃣    | 数据库root密码         | `CHANGE_ME_root_password` |
-| 3️⃣    | DOMjudge数据库专用密码 | `CHANGE_ME_domjudge_password`   |
-| 4️⃣    | DOMjudge管理员初始密码 | `REDACTED_admin_password`      |
+| 1️⃣    | 服务器公网IP           | `123.45.67.89`（示例） |
+| 2️⃣    | 数据库root密码         | 自己设定的强密码，不要照抄本文 |
+| 3️⃣    | DOMjudge数据库专用密码 | 自己设定的强密码，不要照抄本文 |
+| 4️⃣    | DOMjudge管理员初始密码 | 安装日志随机生成，登录后请立即修改 |
 
 ---
 

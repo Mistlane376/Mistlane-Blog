@@ -1,0 +1,17 @@
+{
+  "_readme": "私密照片的 SHA-256 白名单（反向：这些哈希绝不允许出现在 source/ 与 public/ 里）。check-leaks 在每次构建时比对。新增私密照片后，把它的哈希追加到 hashes 数组即可让 CI 也具备拦截能力。",
+  "hashes": [
+    {
+      "sha256": "ce6cedb0e773204396e4e7e3b0e16f88249f7df31427a87938d4ea2fc05ccb4b",
+      "note": "完美的雪人.jpg 原图 317436B（quiet-moments 信封内）"
+    },
+    {
+      "sha256": "45cc80f8bf26bf52c5994adcdfd91c03548d7da191258d02212366b9458fcf27",
+      "note": "完美的雪人.jpg 降采样 129216B"
+    },
+    {
+      "sha256": "cb1035479535a21c7f48a4c7561a854323399c559cdf0d680ad87188192f83c6",
+      "note": "女装.png 20273B"
+    }
+  ]
+}

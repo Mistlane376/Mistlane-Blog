@@ -70,3 +70,7 @@ tools/*-preview.html
 
 .vercel
 .env*
+
+# 安全评估产物：含已复现的漏洞细节与口令，严禁入库或随站点发布
+findings-*.zip
+findings_extract/
