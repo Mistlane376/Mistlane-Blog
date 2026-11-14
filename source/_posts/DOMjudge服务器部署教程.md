@@ -75,7 +75,8 @@ DOMjudge 是举办编程比赛（比如ACM校赛、XCPC选拔赛）最靠谱的�
 
 > ⚠️ **致命警告**：为什么必须选Ubuntu 22.04？  
 > 因为DOMjudge的评测组件依赖Linux的 **cgroup v1** 来隔离和限制评测进程的资源。Ubuntu 24.04默认移除了cgroup v1，改用cgroup v2，会导致judgehost根本无法启动，报错 `cgroup mounting failed`。  
-> 如果你手快已经装了24.04，必须使用DOMjudge 8.3.1及以上版本并额外配置cgroup v2支持——**但新手强烈建议直接重装22.04，省去无穷无尽的麻烦**。
+> 如果你手快已经装了24.04，必须使用DOMjudge 8.3.1及以上版本并额外配置cgroup v2支持——**但新手强烈建议直接重装22.04，省去无穷无尽的麻烦**。  
+> 另外，本教程后面会把 DOMjudge 镜像**固定为 8.3.1**：`latest` 是滚动标签，会一路升到 9.x，而新版对 cgroup 的要求一直在变（主线手册已明确 cgroup v1 不再支持），哪天重建容器就可能让这套 22.04 + cgroup v1 的配置突然失效。具体原因见第五步"坑 2"。
 
 ### 买好之后你得到什么？
 
@@ -179,7 +180,7 @@ nano docker-compose.yml
 
 ```yaml
 services:
-  # MariaDB 数据库
+  # MariaDB 数据库（10.11 LTS，官方镜像自带 healthcheck.sh）
   mariadb:
     image: mariadb:10.11
     container_name: dj-mariadb
@@ -194,10 +195,16 @@ services:
     networks:
       - domjudge
     restart: unless-stopped
+    healthcheck:          # 必须有！domserver 的 service_healthy 依赖它
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 60s   # 首次初始化数据卷较慢，给足宽限期
 
   # DOMjudge 主服务 (DOMserver)
   domserver:
-    image: domjudge/domserver:latest
+    image: domjudge/domserver:8.3.1   # 固定版本，不要用 latest
     container_name: domserver
     environment:
       - MYSQL_HOST=mariadb
@@ -219,11 +226,12 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s   # 首次启动要建表，别被提前判成 unhealthy
 
   # 评测机 (Judgehost)
   judgehost-0:
-    image: domjudge/judgehost:latest
+    image: domjudge/judgehost:8.3.1   # 必须与 domserver 同版本
     container_name: judgehost-0
     privileged: true
     hostname: judgedaemon-0
@@ -251,6 +259,18 @@ volumes:
 
 > ⚠️ **重要**：`JUDGEDAEMON_PASSWORD` 需要从 domserver 容器中获取，先不要着急启动，看下一步。
 
+> 🐛 **坑 1：`service_healthy` 不会自动帮你生成健康检查**
+>
+> `domserver.depends_on.mariadb.condition: service_healthy` 的意思是"等数据库真的健康了再启动"，但 Compose 只是去读被依赖服务的 `healthcheck`，**不会替你补一个**。如果 mariadb 没写 `healthcheck`，`docker compose up -d` 会直接失败，报类似 `container for service "mariadb" has no healthcheck configured`（不同 Compose 版本措辞略有差异，也可能是 `service "mariadb" is missing a healthcheck configuration`），domserver 根本起不来。
+>
+> **为什么用 `healthcheck.sh` 而不是 `mysqladmin ping`**：`mariadb:10.11` 官方镜像自带 `healthcheck.sh`（在 PATH 里，不用额外装工具），`--connect` 确认 TCP 可连、`--innodb_initialized` 确认 InnoDB 完成初始化（含崩溃恢复），这正是 domserver 建表、导入数据所必需的"真就绪"。而 `mysqladmin ping` 在数据库初始化阶段（先以 `--skip-networking` 启动、再重启）就可能返回成功，会让 domserver 连上一个还没准备好的库；从 MariaDB 11.0 起镜像更是直接移除了 `mysqladmin`。`start_period: 60s` 则是给首次创建数据卷留的宽限期，冷启动慢一点不会被判 `unhealthy` 而把 domserver 永远卡住。
+>
+> 上面 domserver 自己的 `healthcheck` 同理加了 `start_period`：它要建表，首次启动常常要几十秒，而 judgehost 也在等它 `healthy`。如果 `docker compose ps` 里 domserver 一直是 `(health: starting)`，先用 `docker exec domserver command -v curl` 确认镜像里有 curl（有些精简镜像没有），再 `docker inspect --format '{{json .State.Health}}' domserver` 看探测输出。
+
+> 🐛 **坑 2：镜像版本必须钉死，而且两个组件要一致**
+>
+> `domjudge/domserver:latest` 和 `domjudge/judgehost:latest` 都是滚动标签。某天重建容器或 `docker compose pull` 之后，服务端可能悄悄升到 9.x、评测机还是旧版（或反过来），REST API 不兼容会让评测机连不上、提交全部卡在 `Pending`；新版对 cgroup 的要求也在变（DOMjudge 主线手册已写明 cgroup v1 不再支持），和本文 Ubuntu 22.04 + cgroup v1 的路线未必兼容。所以这里固定为 **`8.3.1`**：`domserver` 与 `judgehost` 必须写同一个版本号，要升级就两个一起改、一起重测（包括第一步提到的 24.04 + cgroup v2 路线，换版本后也要重新验证）。`mariadb:10.11` 已经钉在 LTS 系列上，需要完全可复现时可以再钉到具体补丁版本或镜像 digest。
+
 ---
 
 ## 🔑 第六步：获取 JUDGEDAEMON_PASSWORD
@@ -258,11 +278,18 @@ volumes:
 我们需要先临时启动 `mariadb` 和 `domserver`，从 domserver 容器中获取 `restapi.secret` 密码：
 
 ```bash
-# 先只启动数据库和 domserver
+# 先只启动数据库和 domserver（Compose 会等 mariadb healthy 才创建 domserver）
 docker compose up -d mariadb domserver
 
-# 等待 domserver 完全启动（约 15-20 秒）
-sleep 20
+# 确认数据库健康检查真的通过了
+docker compose ps
+docker inspect --format '{{.State.Health.Status}}' dj-mariadb   # 输出 healthy 才继续
+
+# 别用固定 sleep，轮询等 domserver 把密钥文件生成出来（最多等 5 分钟）
+for i in $(seq 1 60); do
+  docker exec domserver cat /opt/domjudge/domserver/etc/restapi.secret >/dev/null 2>&1 && break
+  echo "等待 domserver 初始化（$i/60）..."; sleep 5
+done
 
 # 获取 restapi 密钥
 docker exec domserver cat /opt/domjudge/domserver/etc/restapi.secret
@@ -300,7 +327,7 @@ docker compose up -d
 docker compose ps
 ```
 
-你应该看到三个容器全部 `Up`。
+你应该看到三个容器全部 `Up`，其中 `dj-mariadb` 和 `domserver` 会额外显示 `(healthy)`——这是 `depends_on: service_healthy` 生效的标志。judgehost 只有在 domserver 变成 healthy 之后才会被创建；如果它迟迟不出现，按下面"常见问题"里的健康检查排错步骤查。
 
 ---
 
@@ -347,12 +374,85 @@ http://你的服务器IP:12345/jury
 
 如果看到DOMjudge的仪表盘，恭喜！核心系统跑通了。
 
-### 测试提交一条代码
+### 🧪 赛前压测：别只测"正确提交"
 
-1. 在后台创建一个测试队伍和题目。
-2. 打开选手入口：`http://你的服务器IP:12345/team`
-3. 用刚创建的队伍账号登录，提交一份正确的代码。
-4. 观察页面状态：`Pending` → `Running` → `Correct`。如果一直是`Pending`，检查 judgehost 是否启动成功（`docker compose ps judgehost-0`）。
+能判对一道题，只证明主链路通了。比赛当天真正容易出事的是**异常提交**：编译错误会不会拖垮评测队列、超时程序会不会卡住 judgehost、内存超限能不能被拦下并给出正确结果。所以彩排至少要把下面这些结果都跑一遍。
+
+**准备工作**：在后台建一道最简单的题（例如 A+B），配好至少一组测试数据，再建几个测试队伍账号。为了快速触发内存超限，压测时把限制临时调小：
+
+- 单题内存限制：`Problems → 编辑题目 → Memlimit`（单位 kB）
+- 全局内存限制：`Configuration settings → memory_limit`（单位 kB，默认约 2 GB，可被单题覆盖）
+- 时限用 `Timelimit` 调到 1s 即可；**正式比赛前记得把这两项改回真实值**。
+
+选手入口 `http://你的服务器IP:12345/team`，用测试队伍账号提交，观察状态 `Pending` → `Running` → 最终结果。如果一直是 `Pending`，检查 judgehost 是否启动成功（`docker compose ps judgehost-0`、`docker compose logs judgehost-0`）。
+
+| # | 构造方式 | 期望结果 | 重点检查 |
+| :-- | :-- | :-- | :-- |
+| 1 | 正确解法 | `CORRECT` | 榜单 solved +1、罚时正确 |
+| 2 | 语法错误 | `COMPILER-ERROR` | 提交详情能看到编译报错；默认 `compile_penalty=false` **不计罚时**，赛制若要求计入需改配置 |
+| 3 | 死循环 | `TIMELIMIT` | 进程被按时杀掉、队列继续处理下一发，judgehost 没卡死 |
+| 4 | 疯狂申请并写入内存 | `RUN-ERROR`（内部 `memory-limit`） | 见下方说明；cgroup 真的拦住了、宿主机内存没被吃满 |
+| 5 | 除零等非 0 退出 | `RUN-ERROR` | 退出码判定生效 |
+| 6 | 输出错误 / 不输出 / 疯狂输出 | `WRONG-ANSWER` / `NO-OUTPUT` / `OUTPUT-LIMIT` | 榜单计罚是否符合赛制 |
+| 7 | 多个队伍短时间批量提交 | 每一发都走完整个流程 | 不丢单、judgehost 不反复重启；jury、选手页、榜单、event-feed 四处结果一致 |
+
+> ⚠️ **关于"内存超限"**：DOMjudge 不像部分 OJ 那样给选手显示固定的 `MLE` 标签。官方选手手册明确写着"试图使用超过限制的内存，程序多半会中止并记为 run error"；而内部结果类型里确实有 `memory-limit`（可在 jury 的提交详情、runguard 输出里看到线索）。所以验收标准是**"这发提交被及时终止、判为非正确、且没拖垮服务器"**，而不是死等页面上出现 `MLE` 三个字母。
+
+四份最常用的 C++ 测试代码。文件名建议用 `A.cpp`（`A` 换成题目短名），或在网页提交时手动选好题目和语言——`ce.cpp` 这种名字 DOMjudge 会当成题目名去猜，容易选错题：
+
+```cpp
+// 用例1：编译错误
+int main() { this is not c++; }
+```
+
+```cpp
+// 用例2：超时（volatile 防止被编译器优化掉）
+int main() {
+    volatile long long x = 0;
+    for (;;) { x++; }
+}
+```
+
+```cpp
+// 用例3：内存超限（持续申请并真正写入内存）
+#include <cstdlib>
+#include <cstring>
+int main() {
+    const size_t MB = 1024 * 1024;
+    for (;;) {
+        char *p = (char *)malloc(MB);
+        if (!p) break;
+        memset(p, 1, MB);   // 只 malloc 不写，不会真正占用物理内存！
+        // 故意不 free
+    }
+    return 0;
+}
+```
+
+```cpp
+// 用例4：运行错误（非 0 退出）
+int main() {
+    volatile int z = 0;
+    return 1 / z;
+}
+```
+
+压测时另开一个终端盯着日志和资源：
+
+```bash
+docker compose logs -f judgehost-0   # 看每发提交的评测结果
+docker compose ps                    # mariadb / domserver 是否仍为 (healthy)
+htop                                 # CPU、内存有没有被打满
+```
+
+**赛前压测 Checklist**
+
+- [ ] 上面 7 类场景全部判出结果，jury 里能看到对应 verdict
+- [ ] 超时、内存超限的进程被及时杀掉，宿主机没被拖垮，评测队列没有积压不消
+- [ ] `docker compose ps` 中 mariadb、domserver 仍是 `(healthy)`，judgehost 没有反复重启
+- [ ] `docker compose down && docker compose up -d` 后能靠健康检查正常重新拉起
+- [ ] 异常提交的罚时与榜单显示符合赛制（尤其 `compile_penalty`，默认关闭）
+- [ ] 导出的 event-feed 里包含这些异常提交，可直接拿去做第十步的滚榜彩排
 
 ---
 
@@ -364,6 +464,8 @@ http://你的服务器IP:12345/jury
 | 停止所有服务       | `docker compose down`                               |
 | 重启单个服务       | `docker compose restart judgehost-0`                |
 | 查看所有容器状态   | `docker compose ps`                                 |
+| 查看健康检查结果   | `docker inspect --format '{{json .State.Health}}' dj-mariadb` |
+| 校验配置文件       | `docker compose config`                             |
 | 查看实时日志       | `docker compose logs -f`                            |
 | 查看某个服务的日志 | `docker compose logs judgehost-0`                   |
 | 扩展现有多台评测机 | 复制 `judgehost-0` 配置块，修改容器名和 `DAEMON_ID` |
@@ -579,13 +681,29 @@ ICPC_FONT="Microsoft Yahei" ./resolver.bat 你保存的奖项文件.json
 
 说明12345端口被占用了。要么停掉占用的程序，要么把 Compose 文件中的 `"12345:80"` 改成 `"23456:80"`（访问时端口相应改变）。
 
+### ❓ 启动报 `has no healthcheck configured`，或容器一直卡在 `health: starting`
+
+**原因**：`depends_on` 里写了 `condition: service_healthy`，但被依赖的服务没定义 `healthcheck`（本文就是 mariadb）；也可能是健康检查命令在镜像里不存在，或冷启动太慢被判 `unhealthy`。注意 `docker compose up -d mariadb domserver` 这种"只起部分服务"的写法同样会检查依赖条件。
+
+**排查顺序**：
+
+1. 按第五步给 mariadb 补上 `healthcheck.sh --connect --innodb_initialized`，再 `docker compose config` 确认渲染结果里有 healthcheck 段。
+2. 看最后一次探测的真实报错：
+   ```bash
+   docker inspect --format '{{json .State.Health}}' dj-mariadb
+   docker inspect --format '{{json .State.Health}}' domserver
+   ```
+   如果输出里全是 `executable file not found`，说明镜像里没这个命令（例如 domserver 精简镜像不含 `curl`），要换成镜像自带的工具或自行构建装好 curl 的镜像；如果是权限/连接类报错，先 `docker compose pull mariadb` 更新到 10.11 的最新补丁镜像。
+3. 冷启动慢就优先调大 `start_period`（本文给了 60s），而不是一味加大 `retries`。
+4. 确认 `docker compose ps` 里 `dj-mariadb` 和 `domserver` 都显示 `(healthy)`，judgehost 才会被创建。
+
 ### ❓ Judgehost启动报错 `cgroup v2 not supported`
 
 **经典踩坑**。你肯定用了Ubuntu 24.04。解决方案：
 
 1. 简单粗暴：重装系统为Ubuntu 22.04。
 
-2. 硬核方案（不推荐新手）：升级DOMjudge到8.3.1+，并在 Compose 中为 judgehost 添加环境变量 `-e CGROUP_MOUNT_PREFIX=/sys/fs/cgroup`。
+2. 硬核方案（不推荐新手）：本教程已固定 `8.3.1`，这个版本也能跑 cgroup v2，但要额外配置——在 `judgehost-0` 中加 `cgroupns: host`，并按需设置 `CGROUP_MOUNT_PREFIX=/sys/fs/cgroup` 之类的环境变量；注意 Compose 里写环境变量**不带** `-e`（`-e` 是 `docker run` 的参数）。改完必须重跑第九步的压测。**别想着直接换 `latest`**，9.x 的 cgroup 要求和 8.3.1 不一样。
 
    如果22.04任然是cgroup v2 请看这篇文章配置:[将 Ubuntu 22.04 从 cgroup v2 切换到 cgroup v1 的完整配置教程 | Mistlane's Blog](https://blog.mistlane.top/posts/cgroup_v2_v1/)
 
@@ -611,7 +729,7 @@ volumes:
 
 - 检查服务器`htop`看CPU/内存是否爆满。
 - 检查带宽监控是否跑满。
-- 如果judgehost只有一个，考虑临时多开几个容器分担任务（参考第十步的小提示）。
+- 如果judgehost只有一个，考虑临时多开几个容器分担任务（参考前面「Docker Compose 常用管理命令」一节的小提示）。
 
 ---
 
@@ -637,10 +755,11 @@ volumes:
 1. 买服务器并选了正确的Ubuntu 22.04
 2. 用SSH远程连接
 3. 安装Docker并配置镜像加速
-4. 用Docker Compose一键部署数据库、DOMserver、Judgehost
+4. 用Docker Compose一键部署数据库、DOMserver、Judgehost（含健康检查与固定版本）
 5. 拿到管理员密码并成功访问
-6. 了解了赛后滚榜的关键注意事项
+6. 用编译错误、超时、内存超限等异常提交做了赛前压测
+7. 了解了赛后滚榜的关键注意事项
 
 整个过程你只需要复制粘贴命令和配置文件，没有写过一行代码。
 
-**最后送你一句肺腑之言**：赛前一定要用**真实账号、真实题目、真实网络环境**跑一遍全流程（包括滚榜）。技术上最怕的不是不会，而是"以为会了"。祝你的比赛圆满成功！🎉
+**最后送你一句肺腑之言**：赛前一定要用**真实账号、真实题目、真实网络环境**跑一遍全流程——包括异常提交和滚榜，而不是只交一发正确代码就收工。技术上最怕的不是不会，而是"以为会了"。祝你的比赛圆满成功！🎉
