@@ -1,5 +1,7 @@
 ---
 title: 题解-牛客周赛-Round-156
+series: 竞赛题解
+series_order: 3
 date: 2026-08-14 20:55:43
 tags:
   - 算法

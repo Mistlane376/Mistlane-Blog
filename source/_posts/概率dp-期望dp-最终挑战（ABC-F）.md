@@ -1,5 +1,7 @@
 ---
 title: 概率dp
+series: 动态规划专题
+series_order: 2
 date: 2026-08-22 11:54:35
 tags:
   - 算法

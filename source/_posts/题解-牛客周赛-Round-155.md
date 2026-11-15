@@ -1,5 +1,7 @@
 ---
 title: 题解 | 牛客周赛 Round 155
+series: 竞赛题解
+series_order: 2
 date: 2026-08-04 10:04:25
 tags:
   - 算法

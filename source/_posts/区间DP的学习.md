@@ -1,5 +1,8 @@
 ---
 title: 区间DP
+series: 动态规划专题
+series_order: 1
+series_description: 从区间 DP 的区间合并，到概率/期望 DP 的状态设计与期望转移，把两类常见 DP 模型吃透。
 date: 2026-09-23 15:00:00
 tags:
   - 算法

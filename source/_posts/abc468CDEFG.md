@@ -1,6 +1,8 @@
 ---
 title: abc468CDEFG
 series: 竞赛题解
+series_order: 1
+series_description: 赛后把没做出来的题重新推一遍：牛客周赛与 AtCoder 的 C~F，记录题意、关键转化与易错点。
 date: 2026-07-27 16:30:50
 tags:
   - 算法

@@ -1,5 +1,7 @@
 ---
 title: ABC_472-E题讲解
+series: 竞赛题解
+series_order: 4
 tags:
   - 算法
   - 题解

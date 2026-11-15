@@ -1,6 +1,7 @@
 ---
 title: Markdown 使用手册
 series: 写作与前端基础
+series_order: 3
 tags:
   - Markdown
   - 博客
