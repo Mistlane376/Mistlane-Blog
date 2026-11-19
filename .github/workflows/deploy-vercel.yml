@@ -42,42 +42,61 @@ jobs:
           set -u
           missing=0
           printf '| Secret | 状态 |\n| --- | --- |\n' >> "$GITHUB_STEP_SUMMARY"
+
+          # 粘贴到 Secrets 输入框时很容易带进尾部空格或换行，直接拿去做 Bearer 会得到莫名的
+          # 404 User not found。这里统一裁掉，并把裁剪后的值写进 GITHUB_ENV 给后续步骤用。
           for name in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
-            value="${!name:-}"
+            raw="${!name:-}"
+            value="$(printf '%s' "$raw" | tr -d '[:space:]')"
             if [ -z "$value" ]; then
               echo "::error title=缺少 $name::$name 未配置或为空"
               echo "| $name | ❌ 未配置 |" >> "$GITHUB_STEP_SUMMARY"
               missing=1
-            else
-              echo "::add-mask::$value"
-              echo "✓ $name 已配置（${#value} 字符）"
-              echo "| $name | ✅ 已配置（${#value} 字符） |" >> "$GITHUB_STEP_SUMMARY"
+              continue
             fi
+            echo "::add-mask::$value"
+            if [ "${#value}" -ne "${#raw}" ]; then
+              echo "::warning title=$name 含空白字符::$name 原长 ${#raw} 字符，裁掉空格/换行后 ${#value} 字符；已自动裁剪，建议回到 Secrets 里改成干净的值"
+              echo "| $name | ⚠️ 已裁掉空白（${#raw} → ${#value} 字符） |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $name | ✅ ${#value} 字符 |" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            echo "✓ $name 已配置（${#value} 字符）"
+            printf '%s=%s\n' "$name" "$value" >> "$GITHUB_ENV"
           done
           if [ "$missing" -ne 0 ]; then
             echo "::error::请在 Settings → Secrets and variables → Actions 补齐上面列出的 Secret 后重跑"
             exit 1
           fi
 
+          TOKEN="$(printf '%s' "${VERCEL_TOKEN:-}" | tr -d '[:space:]')"
+          ORG="$(printf '%s' "${VERCEL_ORG_ID:-}" | tr -d '[:space:]')"
+          PROJECT="$(printf '%s' "${VERCEL_PROJECT_ID:-}" | tr -d '[:space:]')"
+
           echo "—— 校验 Token 是否有效 ——"
           code=$(curl -sS -o /tmp/vuser.json -w '%{http_code}' \
-            -H "Authorization: Bearer $VERCEL_TOKEN" https://api.vercel.com/v2/user) || code=000
+            -H "Authorization: Bearer $TOKEN" https://api.vercel.com/v2/user) || code=000
           if [ "$code" != "200" ]; then
             reason=$(grep -o '"message":"[^"]*"' /tmp/vuser.json 2>/dev/null | head -1 | cut -d'"' -f4)
-            echo "::error title=VERCEL_TOKEN 无效::HTTP $code${reason:+：$reason}（请在 Vercel → Account Settings → Tokens 重新生成）"
+            echo "::error title=VERCEL_TOKEN 无效::HTTP $code${reason:+：$reason}（到 Vercel → Account Settings → Tokens 重新生成后覆盖这个 Secret）"
+            case "$code" in
+              401|403) echo "::error::令牌被拒绝：多为已撤销、复制不完整或属于别的账号。" ;;
+              404)     echo "::error::令牌解析不到账号：常见于复制时混入了多余字符，或该令牌所属账号已删除。" ;;
+              *)       echo "::error::Vercel API 不可达或返回异常（HTTP $code）。" ;;
+            esac
             exit 1
           fi
           who=$(grep -o '"username":"[^"]*"' /tmp/vuser.json | head -1 | cut -d'"' -f4)
           echo "✓ Token 有效，账号：${who:-未知}"
 
           echo "—— 校验 ORG / PROJECT ——"
-          case "$VERCEL_ORG_ID" in
-            team_*) query="?teamId=$VERCEL_ORG_ID" ;;
+          case "$ORG" in
+            team_*) query="?teamId=$ORG" ;;
             *)      query="" ;;
           esac
           code=$(curl -sS -o /tmp/vproj.json -w '%{http_code}' \
-            -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID$query") || code=000
+            -H "Authorization: Bearer $TOKEN" \
+            "https://api.vercel.com/v9/projects/$PROJECT$query") || code=000
           if [ "$code" != "200" ]; then
             reason=$(grep -o '"message":"[^"]*"' /tmp/vproj.json 2>/dev/null | head -1 | cut -d'"' -f4)
             echo "::error title=ORG/PROJECT 不匹配::项目查询返回 $code${reason:+：$reason}，检查 VERCEL_ORG_ID 与 VERCEL_PROJECT_ID 是否属于同一团队"
@@ -116,11 +135,11 @@ jobs:
         run: npm i -g vercel@latest
 
       - name: Pull Vercel project settings
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build (prebuilt output)
         # 复用 vercel.json 的 buildCommand（npm run build），产物进 .vercel/output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
