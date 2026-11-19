@@ -1,17 +1,17 @@
 ---
+title: JavaScript知识学习
 abbrlink: learning-about-javascript
+date: 2026-11-15 22:45:00
+series: 写作与前端基础
+series_order: 2
 tags:
   - 前端
   - 知识学习
   - 总结
-title: JavaScript知识学习
-series: 写作与前端基础
-series_order: 2
 categories:
   - 教程
 cover: /images/selection1.jpg
 description: 关于 JavaScript 的基本知识：语法、函数、数组与对象、DOM 事件、异步请求
-date: 2026-11-15 22:45:00
 ---
 
 ## 写在前面

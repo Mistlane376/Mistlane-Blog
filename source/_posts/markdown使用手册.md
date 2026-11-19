@@ -1,5 +1,7 @@
 ---
 title: Markdown 使用手册
+abbrlink: markdown-guide
+date: 2026-06-16 15:26:21
 series: 写作与前端基础
 series_order: 3
 tags:
@@ -7,10 +9,8 @@ tags:
   - 博客
 categories:
   - 教程
-abbrlink: markdown-guide
-date: 2026-06-16 15:26:21
-description: Markdown 语法速查手册，涵盖基础语法、GFM 扩展与高级技巧。
 cover: /images/selection2.jpg
+description: Markdown 语法速查手册，涵盖基础语法、GFM 扩展与高级技巧。
 ---
 
 

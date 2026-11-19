@@ -1,5 +1,7 @@
 ---
 title: ABC_472-E题讲解
+abbrlink: 4a299758
+date: 2026-08-23 21:50:56
 series: 竞赛题解
 series_order: 4
 tags:
@@ -7,10 +9,8 @@ tags:
   - 题解
 categories:
   - 题解
-cover: images/archive-hero.jpg
-abbrlink: 4a299758
-date: 2026-08-23 21:50:56
-description:
+cover: /images/archive-hero.jpg
+description: AtCoder ABC 472 E - Odd Cycle：二分图染色判定奇环，再用 BFS 树和冲突边把环具体构造出来
 ---
 
 # [E - Odd Cycle](https://atcoder.jp/contests/abc472/tasks/abc472_e)

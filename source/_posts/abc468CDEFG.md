@@ -1,17 +1,18 @@
 ---
 title: abc468CDEFG
+abbrlink: abc468cdefg
+date: 2026-07-27 16:30:50
 series: 竞赛题解
 series_order: 1
 series_description: 赛后把没做出来的题重新推一遍：牛客周赛与 AtCoder 的 C~F，记录题意、关键转化与易错点。
-date: 2026-07-27 16:30:50
 tags:
   - 算法
   - 题解
   - ACM
-categories: 题解
-description: 赛后题解书写，以便梳理
+categories:
+  - 题解
 cover: /images/selection3.jpg
-abbrlink: abc468cdefg
+description: 赛后题解书写，以便梳理
 ---
 
 # [C - Between P and Q](https://atcoder.jp/contests/abc468/tasks/abc468_c)

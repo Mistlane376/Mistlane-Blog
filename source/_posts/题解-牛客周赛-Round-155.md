@@ -1,17 +1,17 @@
 ---
 title: 题解 | 牛客周赛 Round 155
+abbrlink: nowcoder-weekly-contest-round-155
+date: 2026-08-04 10:04:25
 series: 竞赛题解
 series_order: 2
-date: 2026-08-04 10:04:25
 tags:
   - 算法
   - ACM
   - 题解
 categories:
   - 题解
-description: 赛后题解书写，以便梳理
 cover: /images/selection3.jpg
-abbrlink: nowcoder-weekly-contest-round-155
+description: 赛后题解书写，以便梳理
 ---
 # [A-小月的奇偶灯控_牛客周赛 Round 155](https://ac.nowcoder.com/acm/contest/138240/A)
 

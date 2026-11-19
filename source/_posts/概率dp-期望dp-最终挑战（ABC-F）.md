@@ -1,16 +1,16 @@
 ---
 title: 概率dp
+abbrlink: probability-dp
+date: 2026-08-22 11:54:35
 series: 动态规划专题
 series_order: 2
-date: 2026-08-22 11:54:35
 tags:
   - 算法
   - ACM
 categories:
   - 算法学习
-description: 概率dp的知识整理
 cover: /images/archive-hero.jpg
-abbrlink: probability-dp
+description: 概率dp的知识整理
 ---
 
 # **概率 dp 设计理念：**

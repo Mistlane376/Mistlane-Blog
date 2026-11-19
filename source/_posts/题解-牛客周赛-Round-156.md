@@ -1,17 +1,17 @@
 ---
 title: 题解-牛客周赛-Round-156
+abbrlink: nowcoder-weekly-contest-round-156
+date: 2026-08-14 20:55:43
 series: 竞赛题解
 series_order: 3
-date: 2026-08-14 20:55:43
 tags:
   - 算法
   - ACM
   - 题解
 categories:
   - 题解
-description: 赛后题解书写，以便梳理
 cover: /images/selection4.jpg
-abbrlink: nowcoder-weekly-contest-round-156
+description: 赛后题解书写，以便梳理
 ---
 
 AB略(●'◡'●)

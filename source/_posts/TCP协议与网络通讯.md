@@ -1,5 +1,7 @@
 ---
+title: TCP协议与网络通讯
 abbrlink: tcp-protocol-network-communication
+date: 2026-11-15 23:00:00
 tags:
   - 计算机网络
   - TCP
@@ -9,7 +11,6 @@ categories:
   - 教程
 cover: /images/selection4.jpg
 description: 从三次握手、四次挥手到滑动窗口与拥塞控制，再用 socket 亲手实现一次带长度前缀的 TCP 通讯
-date: 2026-11-15 23:00:00
 ---
 
 ## 为什么先啃 TCP

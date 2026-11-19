@@ -1,16 +1,16 @@
 ---
 title: LaTeX 数学公式指南
-series: 写作与前端基础
-series_order: 4
 abbrlink: LaTeX-Learning
 date: 2026-08-05 21:21:26
+series: 写作与前端基础
+series_order: 4
 tags:
   - 知识学习
   - 总结
 categories:
   - 教程
-description: LaTeX 数学公式便于题解书写
 cover: /images/selection4.jpg
+description: LaTeX 数学公式便于题解书写
 mathjax: true
 ---
 

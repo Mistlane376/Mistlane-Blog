@@ -1,18 +1,18 @@
 ---
+title: HTML知识学习
 abbrlink: learning-about-html
+date: 2026-07-31 20:43:11
+series: 写作与前端基础
+series_order: 1
+series_description: 从 HTML 的骨架、JavaScript 的行为开始，把静态页面做成能交互的网页；再补上 Markdown 与 LaTeX，把学过的东西写清楚。
 tags:
   - 前端
   - 知识学习
   - 总结
-title: HTML知识学习
-series: 写作与前端基础
-series_order: 1
-series_description: 从 HTML 的骨架、JavaScript 的行为开始，把静态页面做成能交互的网页；再补上 Markdown 与 LaTeX，把学过的东西写清楚。
 categories:
   - 教程
 cover: /images/selection3.jpg
 description: 关于html的基本知识
-date: 2026-07-31 20:43:11
 ---
 
 
