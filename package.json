@@ -15,6 +15,7 @@
     "moment:new": "hexo moment",
     "check:site": "node tools/regression-check.js",
     "check:leaks": "node tools/check-leaks.js",
+    "verify:vercel": "node tools/verify-vercel-secrets.mjs",
     "server": "npm run assets:prepare && hexo server",
     "dev": "npm run assets:prepare && hexo server",
     "clean": "hexo clean",

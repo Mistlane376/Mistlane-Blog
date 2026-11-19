@@ -56,6 +56,8 @@
     else
       if site.data.link
         - let result = ""
+        - let statusMap = (site.data['flink-status'] && site.data['flink-status'].links) || {}
+        - let escAttr = (value) => String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
         each i in site.data.link
           - let className = i.class_name ? markdown(`## ${i.class_name}`) : ""
           - let classDesc = i.class_desc ? `<div class="flink-desc">${i.class_desc}</div>` : ""
@@ -64,8 +66,21 @@
 
           each j in i.link_list
             -
+              const key = String(j.link || '').trim()
+              const st = statusMap[key]
+              const state = st ? (st.up === false ? 'down' : 'up') : 'unknown'
+              let detailAttrs = ''
+              if (st) {
+                detailAttrs = ` data-link-code="${escAttr(st.status || 0)}"` +
+                  ` data-link-text="${escAttr(st.statusText || '')}"` +
+                  ` data-link-ms="${escAttr(st.ms || 0)}"` +
+                  ` data-link-checked="${escAttr(st.checkedAt || '')}"` +
+                  ` data-link-final="${escAttr(st.finalUrl || '')}"` +
+                  ` data-link-server="${escAttr(st.server || '')}"` +
+                  ` data-link-error="${escAttr(st.error || '')}"`
+              }
               listResult += `
-                <div class="flink-list-item">
+                <div class="flink-list-item" data-link-status="${state}"${detailAttrs}>
                   <a href="${j.link}" title="${j.name}" target="_blank">
                     <div class="flink-item-icon">
                       <img class="no-lightbox" src="${j.avatar}" onerror='this.onerror=null;this.src="${url_for(theme.error_img.flink)}"' alt="${j.name}" />

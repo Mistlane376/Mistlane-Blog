@@ -74,3 +74,6 @@ tools/*-preview.html
 # 安全评估产物：含已复现的漏洞细节与口令，严禁入库或随站点发布
 findings-*.zip
 findings_extract/
+
+# 友链可用性检测产物（每次构建前由 GitHub Action / 本地脚本重新生成，不入库）
+source/_data/flink-status.json
