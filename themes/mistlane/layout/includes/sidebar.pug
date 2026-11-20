@@ -4,8 +4,20 @@ if theme.menu
     button#sidebar-close.sidebar-close(type="button" aria-label="关闭侧边栏" title="关闭侧边栏")
       i.fas.fa-xmark(aria-hidden="true")
     #sidebar-menus
-      .avatar-img.text-center
-        img(src=url_for(theme.avatar.img) onerror=`this.onerror=null;this.src='${url_for(theme.error_img.flink)}'` alt="avatar")
+      .drawer-identity
+        .avatar-img.text-center
+          img(src=url_for(theme.avatar.img) onerror=`this.onerror=null;this.src='${url_for(theme.error_img.flink)}'` alt="avatar")
+          span.author-presence(title="持续记录中" aria-label="持续记录中")
+        .drawer-identity-text
+          .drawer-name= config.author
+          .drawer-role
+            i.fas.fa-code
+            span= ' 计算机科学 · ACM'
+        p.drawer-bio= config.description
+        if theme.social
+          .drawer-social
+            !=partial('includes/header/social', {}, { cache: true })
+
       .site-data.text-center
         a(href=`${url_for(config.archive_dir)}/`)
           .headline= _p('aside.articles')

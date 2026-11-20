@@ -30,20 +30,21 @@ html.mobile-sidebar-open #rightside {
   right: 14px;
   z-index: 104;
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--font-color) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ui-teal) 18%, var(--ui-border));
   border-radius: 50%;
-  background: color-mix(in srgb, var(--font-color) 8%, transparent);
-  color: var(--font-color);
-  font-size: 0.86rem;
+  background: color-mix(in srgb, var(--ui-surface-solid) 82%, transparent);
+  box-shadow: 0 4px 12px rgba(24, 42, 50, .08);
+  color: var(--ui-muted);
+  font-size: 0.78rem;
   cursor: pointer;
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 html.mobile-sidebar-open #sidebar .sidebar-close {
@@ -72,25 +73,381 @@ html.mobile-sidebar-open #sidebar .sidebar-close {
   margin-bottom: 26px;
 }
 
+/* The stylus base nests these rules under #sidebar #sidebar-menus, i.e. two
+   ids, so a single-id selector loses on specificity. The extra #sidebar here
+   matches it and, being later in the cascade, wins. */
 @media screen and (max-width: 768px) {
-  #sidebar-menus .menus_items .site-page {
-    min-height: 44px;
+  #sidebar #sidebar-menus .menus_items .site-page {
     display: flex;
+    min-height: 44px;
     align-items: center;
-    gap: 4px;
+    gap: 11px;
+    margin: 3px 0;
+    padding: 6px 10px;
+    border-left: 2px solid transparent;
+    border-radius: 7px;
+    font-size: .94rem;
+    line-height: 1.35;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
   }
 
-  #sidebar-menus .menus_items .site-page > i:first-child {
-    width: 26px;
+  #sidebar #sidebar-menus .menus_items .site-page > i:first-child {
+    display: grid;
+    width: 27px;
+    height: 27px;
     flex: none;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--ui-teal-soft);
+    color: var(--ui-teal);
+    font-size: .74rem;
     text-align: center;
+    transition: background-color .2s ease, color .2s ease;
   }
 
-  #sidebar-menus .menus_items .menus_item_child .site-page {
-    min-height: 40px;
+  #sidebar #sidebar-menus .menus_items .menus_item_child .site-page {
+    min-height: 38px;
+    padding-left: 14px;
+    font-size: .82rem;
   }
 
   #sidebar-menus .site-data {
     padding: 0 20px;
   }
+}
+
+/* --- Visual uplift: identity header, stats, search, grouping, badges ------
+   Layered on top of the stylus base (index.css) and compiled into core.css,
+   so it wins the cascade without touching the Hexo-compiled stylesheet.
+   Every colour comes from the --ui-* palette, which already has light/dark
+   variants, so both themes are covered with a single set of rules. */
+
+/* Drawer palette: the sheet is pale teal paper, the ornament is a teal
+   hairline. Kept as local variables so the light/dark pair is one swap. */
+#sidebar-menus {
+  --drawer-wash-top: color-mix(in srgb, var(--ui-teal-soft) 90%, #fff);
+  --drawer-wash-mid: color-mix(in srgb, var(--ui-teal-soft) 54%, var(--ui-surface-soft));
+  --drawer-line: color-mix(in srgb, var(--ui-teal) 17%, transparent);
+  --drawer-line-soft: color-mix(in srgb, var(--ui-teal) 10%, transparent);
+  --drawer-line-strong: color-mix(in srgb, var(--ui-teal) 26%, transparent);
+  --drawer-weft: color-mix(in srgb, var(--ui-teal) 6%, transparent);
+  --drawer-card: var(--ui-surface-solid);
+}
+
+[data-theme='dark'] #sidebar-menus {
+  --drawer-wash-top: color-mix(in srgb, var(--ui-teal) 22%, var(--ui-surface-solid));
+  --drawer-wash-mid: color-mix(in srgb, var(--ui-teal) 10%, var(--ui-surface-soft));
+  --drawer-line: color-mix(in srgb, var(--ui-teal) 22%, transparent);
+  --drawer-line-soft: color-mix(in srgb, var(--ui-teal) 13%, transparent);
+  --drawer-line-strong: color-mix(in srgb, var(--ui-teal) 32%, transparent);
+  --drawer-weft: color-mix(in srgb, var(--ui-teal) 9%, transparent);
+  /* one step above the sheet so panels read as raised, not sunken */
+  --drawer-card: color-mix(in srgb, var(--ui-surface-solid) 62%, #33454c);
+}
+
+/* Ornament: long, low-curvature arcs whose centres sit far outside the drawer,
+   so the header is crossed by a handful of drifting hairlines rather than a
+   printed motif. One slightly heavier line anchors the composition; the whole
+   set dissolves toward the stats so it never competes with the content. */
+#sidebar-menus::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 322px;
+  background-image:
+    /* top hairline, same signature as .card-info::before */
+    linear-gradient(90deg, var(--ui-teal), color-mix(in srgb, var(--ui-blue) 76%, var(--ui-teal))),
+    /* one anchored arc, the focal line */
+    radial-gradient(ellipse 190% 130% at -8% 128%,
+      transparent 0 150px,
+      var(--drawer-line-strong) 150px 151px,
+      transparent 151px),
+    /* two concentric families at co-prime spacings: same centre, so the lines
+       never cross, but the gaps drift between narrow and wide instead of
+       marching out at an even pitch */
+    repeating-radial-gradient(ellipse 190% 130% at -8% 128%,
+      transparent 0 22px,
+      var(--drawer-line) 22px 23px,
+      transparent 23px 58px),
+    repeating-radial-gradient(ellipse 190% 130% at -8% 128%,
+      transparent 0 41px,
+      var(--drawer-line) 41px 42px,
+      transparent 42px 79px),
+    /* counter sweep: very sparse, just a breath of depth from the top-right */
+    repeating-radial-gradient(ellipse 150% 200% at 106% -10%,
+      transparent 0 78px,
+      var(--drawer-line-soft) 78px 79px,
+      transparent 79px 152px),
+    /* paper wash */
+    linear-gradient(165deg,
+      var(--drawer-wash-top) 0%,
+      var(--drawer-wash-mid) 48%,
+      transparent 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 3px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-position: top, 0 0, 0 0, 0 0, 0 0, 0 0;
+  /* dissolve the line work into the sheet before the stat cards start */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0 66%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0 66%, transparent 100%);
+  content: '';
+  pointer-events: none;
+}
+
+/* The sheet itself gets a barely-there weft so the drawer feels like paper
+   rather than a flat fill. Kept under 8% so text contrast is unaffected. */
+#sidebar-menus {
+  background-color: color-mix(in srgb, var(--ui-teal-soft) 34%, var(--ui-surface-soft)) !important;
+  background-image:
+    repeating-linear-gradient(135deg,
+      var(--drawer-weft) 0 1px,
+      transparent 1px 6px) !important;
+}
+
+/* Dark cards are #1b2227, so the sheet has to sit below them or the cards
+   sink into the background instead of lifting off it. */
+[data-theme='dark'] #sidebar-menus {
+  background-color: color-mix(in srgb, var(--ui-teal-soft) 38%, #0f181d) !important;
+}
+
+#sidebar-menus > .drawer-identity,
+#sidebar-menus > .site-data,
+#sidebar-menus > .menus_items {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- A. Identity card ---------------------------------------------------- */
+.drawer-identity {
+  padding: 32px 24px 4px;
+  text-align: center;
+  color: var(--ui-heading);
+}
+
+#sidebar-menus .drawer-identity .avatar-img {
+  position: relative;
+  width: 88px !important;
+  height: 88px !important;
+  margin: 0 auto !important;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--ui-surface-solid),
+              0 0 0 4px var(--ui-teal),
+              0 14px 28px color-mix(in srgb, var(--ui-teal) 22%, transparent) !important;
+}
+
+#sidebar-menus .drawer-identity .avatar-img img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.drawer-identity .author-presence {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--ui-surface-solid);
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+}
+
+.drawer-name {
+  margin-top: 14px;
+  color: var(--ui-heading);
+  font-size: 1.16rem;
+  font-weight: 720;
+  letter-spacing: .035em;
+  line-height: 1.2;
+}
+
+.drawer-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 3px 11px;
+  border: 1px solid color-mix(in srgb, var(--ui-teal) 24%, var(--ui-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ui-surface-solid) 74%, transparent);
+  color: var(--ui-teal);
+  font-size: .65rem;
+  letter-spacing: .01em;
+}
+
+.drawer-role i { font-size: .58rem; }
+
+.drawer-bio {
+  margin: 11px auto 0;
+  max-width: 100%;
+  color: var(--ui-muted);
+  font-size: .7rem;
+  line-height: 1.65;
+}
+
+.drawer-social {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.drawer-social .social-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ui-teal) 18%, var(--ui-border));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--ui-surface-solid) 78%, transparent);
+  color: var(--ui-teal) !important;
+  font-size: .8rem;
+  text-decoration: none;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.drawer-social .social-icon i { color: var(--ui-teal) !important; }
+.drawer-social .social-icon:hover {
+  border-color: var(--ui-teal);
+  background: var(--ui-teal);
+  color: var(--ui-surface-solid) !important;
+  transform: translateY(-2px);
+}
+
+.drawer-social .social-icon:hover i { color: var(--ui-surface-solid) !important; }
+
+/* Stats become three solid cards; digits use the accent palette. */
+#sidebar-menus > .site-data {
+  display: grid !important;
+  /* a global rule pins .site-data to width:100%, which then overflows the
+     drawer once the 20px side margins are added back on. */
+  width: auto !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 24px 20px 4px !important;
+  padding: 0 !important;
+}
+
+#sidebar-menus > .site-data > a {
+  display: block;
+  padding: 11px 2px 10px;
+  border: 1px solid color-mix(in srgb, var(--ui-teal) 12%, var(--ui-border));
+  border-radius: 9px;
+  /* index.css sets #sidebar .site-data>a transparent!important; override it. */
+  background: var(--drawer-card) !important;
+  box-shadow: 0 5px 14px rgba(24, 42, 50, .06);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+#sidebar-menus > .site-data > a:hover {
+  border-color: color-mix(in srgb, var(--ui-teal) 34%, var(--ui-border));
+  box-shadow: 0 9px 20px rgba(24, 42, 50, .1);
+  transform: translateY(-2px);
+}
+
+#sidebar-menus > .site-data > a:active {
+  transform: translateY(0);
+}
+
+#sidebar-menus > .site-data .headline {
+  color: var(--ui-muted);
+  font-size: .64rem !important;
+}
+
+#sidebar-menus > .site-data .length-num {
+  margin-top: 2px !important;
+  font-size: 1.18rem !important;
+  font-weight: 780;
+  font-variant-numeric: tabular-nums;
+}
+
+#sidebar-menus > .site-data .length-num { color: var(--ui-teal) !important; }
+
+/* Menu container reads as a card floating below the header. */
+#sidebar-menus .menus_items {
+  margin: 16px 20px 26px !important;
+  padding: 12px !important;
+  border: 1px solid color-mix(in srgb, var(--ui-teal) 14%, var(--ui-border));
+  background: var(--drawer-card) !important;
+  box-shadow: var(--ui-shadow-sm) !important;
+}
+
+/* --- B. Group hierarchy -------------------------------------------------- */
+/* Group headers read as quiet section labels; their collapse chevron stays
+   untouched so the existing scaleY animation keeps working. */
+#sidebar-menus .menus_items > .menus_item > .site-page.group {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ui-border);
+  color: var(--ui-muted);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+#sidebar-menus .menus_items > .menus_item > .site-page.group > i:first-child {
+  background: transparent;
+  color: var(--ui-teal);
+  font-size: .78rem;
+}
+
+/* Child items get an indentation rail to show they belong to the group. */
+#sidebar-menus .menus_items .menus_item_child {
+  margin-left: 15px !important;
+  padding-left: 12px !important;
+  border-left: 1px solid color-mix(in srgb, var(--ui-teal) 26%, var(--ui-border));
+}
+
+#sidebar-menus .menus_items .menus_item_child .site-page {
+  min-height: 38px;
+  color: var(--ui-muted);
+  font-size: .78rem;
+}
+
+#sidebar-menus .menus_items .menus_item_child .site-page > i:first-child {
+  width: 20px !important;
+  height: 20px !important;
+  background: var(--ui-surface-soft) !important;
+  color: var(--ui-faint) !important;
+  font-size: .66rem !important;
+}
+
+#sidebar-menus .menus_items .menus_item_child .site-page.is-current {
+  border-left-color: var(--ui-teal);
+  color: var(--ui-teal);
+}
+
+/* One calm accent for all badges: restrained teal, not a rainbow. */
+#sidebar-menus .menus_items > .menus_item > .site-page > i:first-child {
+  background: var(--ui-teal-soft);
+  color: var(--ui-teal);
+}
+
+/* Hover lifts the row and fills the badge; current page gets a persistent
+   teal rail. The .is-current class is applied by features/mobile-sidebar.js. */
+#sidebar-menus .menus_items .site-page:hover {
+  background: var(--ui-surface-soft);
+  color: var(--ui-heading);
+  box-shadow: none;
+  transform: none;
+}
+
+#sidebar-menus .menus_items .site-page:hover > i:first-child {
+  background: var(--ui-teal);
+  color: var(--ui-surface-solid);
+}
+
+#sidebar-menus .menus_items > .menus_item > .site-page.is-current {
+  border-left-color: var(--ui-teal);
+  background: var(--ui-teal-soft);
+  color: var(--ui-teal);
+  font-weight: 650;
+}
+
+[data-theme='dark'] #sidebar-menus .menus_items .site-page:hover > i:first-child,
+[data-theme='dark'] #sidebar-menus .menus_items > .menus_item > .site-page.is-current {
+  color: var(--ui-surface-solid);
 }

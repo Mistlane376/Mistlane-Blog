@@ -13,6 +13,36 @@ let delegationBound = false
 
 const isOpen = () => Boolean(document.getElementById('sidebar-menus')?.classList.contains('open'))
 
+const normalize = path => {
+  try {
+    const url = new URL(path, window.location.origin)
+    let p = url.pathname.replace(/\/+$/, '') || '/'
+    if (p.length > 1 && p.endsWith('/index.html')) p = p.slice(0, -'/index.html'.length) || '/'
+    return p
+  } catch (_) {
+    return path
+  }
+}
+
+// Mark the drawer entry matching the current page. Longest-href wins so that
+// e.g. /link/ does not also highlight a hypothetical / link on the index.
+const highlightCurrent = () => {
+  const current = normalize(window.location.pathname)
+  const links = document.querySelectorAll('#sidebar-menus .menus_items a.site-page[href]')
+  let best = null
+  let bestLength = -1
+  links.forEach(link => {
+    link.classList.remove('is-current')
+    const href = normalize(link.getAttribute('href'))
+    if (href !== current) return
+    if (href.length > bestLength) {
+      best = link
+      bestLength = href.length
+    }
+  })
+  best?.classList.add('is-current')
+}
+
 const syncState = () => {
   const open = isOpen()
   const root = document.documentElement
@@ -61,4 +91,5 @@ const bindDelegates = () => {
 onMount(() => {
   bindDelegates()
   bindDrawer()
+  highlightCurrent()
 })

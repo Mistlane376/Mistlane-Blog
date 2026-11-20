@@ -60,6 +60,17 @@ const loadSearchScript = () => {
   return searchScript.loading
 }
 
+// The theme binds openSearch on `#search-button > .search`, but on touch devices
+// the hit target is often the wrapping `#search-button` div (its box sits above
+// the span). A real tap then never reaches the span, so nothing opens. Resolve
+// the actual search span from either the span itself or the wrapper, and replay
+// the click on it so the theme's handler fires.
+const resolveSearchSpan = container => {
+  if (!container) return null
+  if (container.classList && container.classList.contains('search')) return container
+  return container.querySelector(':scope > .search')
+}
+
 const installSearchLazyLoad = () => {
   // Prefetch when the pointer approaches the button so the click feels instant.
   document.addEventListener('pointerover', event => {
@@ -69,15 +80,29 @@ const installSearchLazyLoad = () => {
 
   document.addEventListener('click', event => {
     const target = event.target
-    if (!(target instanceof Element) || searchScript.loaded) return
+    if (!(target instanceof Element)) return
 
-    const button = target.closest('#search-button > .search')
-    if (!button) return
+    const container = target.closest('#search-button')
+    if (!container) return
+    const span = resolveSearchSpan(container)
+    if (!span) return
 
+    if (searchScript.loaded) {
+      // Script ready and theme handler bound to the span. If the tap landed on
+      // the wrapper (or an inner icon that isn't the span), replay on the span.
+      const hitSpan = target === span || !!target.closest('#search-button > .search')
+      if (!hitSpan) {
+        event.preventDefault()
+        span.click()
+      }
+      return
+    }
+
+    // First click: intercept, load the search script, then replay on the span.
     event.preventDefault()
     event.stopImmediatePropagation()
     loadSearchScript().then(() => {
-      if (searchScript.loaded) button.click()
+      if (searchScript.loaded) span.click()
     })
   }, true)
 }

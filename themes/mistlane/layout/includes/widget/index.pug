@@ -17,20 +17,20 @@
         !=partial('includes/widget/card_recent_post', {}, {cache: true})
         !=partial('includes/widget/card_ad', {}, {cache: true})
   else
-    aside.aside-column.aside-column-left(aria-label="个人信息侧栏")
+    aside.aside-column.aside-column-left(aria-label="个人信息与快捷入口侧栏")
       .aside-rail-label
         span PROFILE
-        strong 个人与今日
+        strong 个人与快捷
       !=partial('includes/widget/card_author', {}, {cache: true})
       include ./card_today.pug
-      include ./card_calendar.pug
-    aside.aside-column.aside-column-right(aria-label="内容导航侧栏")
+      include ./card_quick_links.pug
+    aside.aside-column.aside-column-right(aria-label="内容与访客侧栏")
       .sticky_layout
         .aside-rail-label
           span DISCOVER
-          strong 导航与状态
+          strong 内容与访客
         if showToc
           include ./card_post_toc.pug
         !=partial('includes/widget/card_announcement', {}, {cache: true})
-        include ./card_quick_links.pug
+        include ./card_calendar.pug
         include ./card_visitor_stats.pug

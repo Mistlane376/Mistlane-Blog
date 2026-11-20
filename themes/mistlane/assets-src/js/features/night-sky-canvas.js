@@ -505,6 +505,7 @@
     var running = false, visible = !document.hidden, destroyed = false
     var raf = 0, lastTs = 0, time = 0, resizeTimer = 0
     var quality = 3, ema = 16.7, warmup = 40, bad = 0, good = 0
+    var bgQuality = -1                 // 静态层上次按哪一档画质光栅化，-1 = 需要重画
     var wind = opt.windBase, gust = 0
     var gustTimer = rand(opt.gustGap[0], opt.gustGap[1])
     var gustEv = { active: false, age: 0, life: 1, amp: 0, dir: 1 }
@@ -693,11 +694,27 @@
     }
 
     // ---- 星点生成：斜带偏置 + 幂律星等 + 大气消光稀疏化 ----------------------
-    function buildStars() {
-      activeStars = clamp(Math.round(opt.starCount * QUALITY[quality].star), 60, MAX_STARS)
+    // 星点池只增不减：resize（视口变化 / 自动画质升降）只是改「绘制前多少颗」，
+    // 已经生成的星点原样保留。此前每次都整片重新随机，观感就是星空忽然换了一批
+    // 星——滚动时移动端地址栏收放、掉帧降级都会触发，看着像特效自己刷新了一下。
+    var starPool = 0
+
+    function starTarget() {
+      return clamp(Math.round(opt.starCount * QUALITY[quality].star), 60, MAX_STARS)
+    }
+
+    // 星芒只给池子里的「近层亮星」，且必须仍在绘制范围内。
+    function rebuildBright() {
       brightIdx.length = 0
-      var bandSigma = Math.max(12, H * opt.milkyWayWidth * 0.60)
       for (var i = 0; i < activeStars; i += 1) {
+        if (slayer[i] === 2 && smag[i] > 0.80 && brightIdx.length < 16) brightIdx.push(i)
+      }
+    }
+
+    function buildStars() {
+      var target = starTarget()
+      var bandSigma = Math.max(12, H * opt.milkyWayWidth * 0.60)
+      for (var i = starPool; i < target; i += 1) {
         var lr = Math.random()
         var li = lr < STAR_CUM[0] ? 0 : lr < STAR_CUM[1] ? 1 : 2
         var L = STAR_LAYERS[li]
@@ -731,8 +748,11 @@
         sphDx[i] = sphase[i] * 0.07                    // 视差相位偏移，预乘好省一次乘法
         sphDy[i] = sphase[i] * 0.05
         spikeAngle[i] = rand(0, TAU)
-        // 近层亮星才带四芒星芒（数量很少，逐颗绘制渐变不心疼）。
-        if (li === 2 && mag > 0.80 && brightIdx.length < 16) brightIdx.push(i)
+      }
+      if (target > starPool) starPool = target
+      if (target !== activeStars) {
+        activeStars = target
+        rebuildBright()
       }
     }
 
@@ -740,22 +760,39 @@
     function resize() {
       if (destroyed) return
       var oldW = W, oldH = H
-      W = Math.max(1, canvas.clientWidth || root.innerWidth || 1)
-      H = Math.max(1, canvas.clientHeight || root.innerHeight || 1)
-      dpr = clamp(root.devicePixelRatio || 1, 1, Math.min(opt.maxDpr, QUALITY[quality].dpr))
+      var nextW = Math.max(1, canvas.clientWidth || root.innerWidth || 1)
+      var nextH = Math.max(1, canvas.clientHeight || root.innerHeight || 1)
+      var nextDpr = clamp(root.devicePixelRatio || 1, 1, Math.min(opt.maxDpr, QUALITY[quality].dpr))
+      var sizeChanged = nextW !== W || nextH !== H
+      // 位图尺寸没变就别重设 canvas.width/height：那会清空整块位图并丢掉合成层，
+      // 只是切画质档位时会闪出一帧空画布。
+      var surfaceChanged = sizeChanged || nextDpr !== dpr || bgQuality !== quality
+      W = nextW
+      H = nextH
+      dpr = nextDpr
       gy = H * clamp(opt.groundY, 0.3, 0.95)
       groundRange = Math.max(60, H - gy)
-      canvas.width = Math.round(W * dpr)
-      canvas.height = Math.round(H * dpr)
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      ctx.lineCap = 'round'
-      buildBackground()
+      if (surfaceChanged) {
+        canvas.width = Math.round(W * dpr)
+        canvas.height = Math.round(H * dpr)
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        ctx.lineCap = 'round'
+        buildBackground()
+        bgQuality = quality
+      }
+      // 已生成的星点按视口比例平滑迁移（新补的星已经用新尺寸取样，不参与缩放）。
+      var poolBefore = starPool
       buildStars()
 
-      if (oldW > 1 && oldH > 1) {
+      if (sizeChanged && oldW > 1 && oldH > 1) {
         var sxr = W / oldW, syr = H / oldH
-        for (var i = 0; i < petals.active.length; i += 1) {
-          var p = petals.active[i]
+        for (var i = 0; i < poolBefore; i += 1) {
+          sx[i] *= sxr
+          sy[i] *= syr
+          sext[i] = extinction(sy[i])
+        }
+        for (var j = 0; j < petals.active.length; j += 1) {
+          var p = petals.active[j]
           p.baseX *= sxr
           p.fallY *= syr
           p.landY = landYFor(p.depth)
@@ -763,6 +800,10 @@
         }
       }
       setPetalCount(opt.petalCount * QUALITY[quality].petal)
+
+      // 重设位图会清空可见画布：正在运行时立刻补一帧（静态层已 re-rasterize），
+      // 否则换档 + 等下一帧之间会闪出一帧空白底。
+      if (surfaceChanged && running && visible && !destroyed) render()
     }
 
     // ---- 花瓣生命周期 -------------------------------------------------------
@@ -1556,7 +1597,9 @@
     function onVisibility() { visible = !document.hidden; syncRun() }
     function onResize() { root.clearTimeout(resizeTimer); resizeTimer = root.setTimeout(resize, 120) }
     function setQuality(n) {
-      quality = clamp(Math.round(n), 0, 3)
+      var next = clamp(Math.round(n), 0, 3)
+      if (next === quality) return quality
+      quality = next
       resize()
       return quality
     }
@@ -1583,8 +1626,10 @@
           patch.interactive !== undefined) {
         if (!opt.swirlEnabled || !opt.interactive) { shards.clear(); swirl.dist = 0 }
       }
-      if (structural) resize()
-      else if (patch.petalCount !== undefined) setPetalCount(opt.petalCount * QUALITY[quality].petal)
+      if (structural) {
+        bgQuality = -1
+        resize()
+      } else if (patch.petalCount !== undefined) setPetalCount(opt.petalCount * QUALITY[quality].petal)
       return api
     }
 

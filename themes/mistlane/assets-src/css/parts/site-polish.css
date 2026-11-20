@@ -169,12 +169,30 @@ html:not([data-theme='dark']) #web_bg::after {
   will-change: transform;
   contain: layout paint style;
   backface-visibility: hidden;
+  /* 主题切换时旧层淡出、新层淡入（时长与 effects.js 的 FADE_MS 对齐），
+     交叉过渡保证任何一帧都有画面，不会闪出一片底色的空档。 */
+  opacity: 1;
+  transition: opacity 0.42s ease;
+}
+
+/* 新层从透明起步；旧层淡出后由脚本移除。 */
+.night-sky-canvas-layer.is-entering,
+.rain-canvas-layer.is-entering,
+.night-sky-canvas-layer.is-leaving,
+.rain-canvas-layer.is-leaving {
+  opacity: 0;
 }
 
 /* 兜底：JS 按主题只挂载对应引擎，避免 PJAX 切换瞬间串场。 */
 html:not([data-theme='dark']) .night-sky-canvas-layer,
 [data-theme='dark'] .rain-canvas-layer {
   display: none;
+}
+
+/* 例外：正在淡出的旧层要留到过渡结束，否则切换瞬间会直接被藏掉。 */
+html:not([data-theme='dark']) .night-sky-canvas-layer.is-leaving,
+[data-theme='dark'] .rain-canvas-layer.is-leaving {
+  display: block;
 }
 
 .effects-disabled .night-sky-canvas-layer,
@@ -214,8 +232,39 @@ a:hover {
   background-position: center 46%;
 }
 
+/* 首页大图的封面遮罩。四段透明度抽成变量：日间只需要换一组数值，
+   不必把整条渐变再抄一遍，也不会出现改了一处忘了另一处的情况。 */
+#page-header.full_page {
+  --hero-mask-start: rgba(5, 24, 38, 0.84);
+  --hero-mask-mid: rgba(8, 34, 50, 0.76);
+  --hero-mask-far: rgba(8, 35, 51, 0.48);
+  --hero-mask-end: rgba(8, 35, 51, 0.3);
+}
+
+/* 日间：亮色页面里同一张封面显得过沉，遮罩整体调淡一档；颜色也从深蓝改成中性近黑——
+   蓝调遮罩会给整张图蒙一层冷灰，向日葵这类暖色最先被压掉。 */
+html:not([data-theme='dark']) #page-header.full_page {
+  --hero-mask-start: rgba(10, 14, 18, 0.64);
+  --hero-mask-mid: rgba(12, 18, 22, 0.52);
+  --hero-mask-far: rgba(14, 20, 24, 0.28);
+  --hero-mask-end: rgba(16, 22, 26, 0.12);
+}
+
+/* 日间再给底图本身提一点色。滤镜不能直接挂在 #page-header 上：filter 会成为
+   固定定位后代的包含块，滚动到 nav-fixed 时导航会跟着页头跑位。所以把背景
+   复制一份到 ::after 上做局部滤镜（z-index:-1 让它落在遮罩之下、正文之上）。
+   夜间不加：深色底再提色容易发脏。 */
+html:not([data-theme='dark']) #page-header.full_page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: inherit;
+  filter: saturate(1.3) contrast(1.04);
+}
+
 #page-header.full_page::before {
-  background: linear-gradient(105deg, rgba(5, 24, 38, 0.84) 0%, rgba(8, 34, 50, 0.76) 42%, rgba(8, 35, 51, 0.48) 72%, rgba(8, 35, 51, 0.3) 100%);
+  background: linear-gradient(105deg, var(--hero-mask-start) 0%, var(--hero-mask-mid) 42%, var(--hero-mask-far) 72%, var(--hero-mask-end) 100%);
 }
 
 #page-header.full_page #nav {

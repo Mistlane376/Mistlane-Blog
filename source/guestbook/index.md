@@ -15,9 +15,16 @@ description: 留下一句问候、建议或想聊的话。
     <h1 id="guestbook-title">留言板</h1>
     <p>路过的话，留下一句问候吧。也欢迎分享想法、推荐或对这个小站的建议。</p>
   </div>
-  <div class="guestbook-stamp" aria-hidden="true">
-    <img src="/images/marcus.png" alt="">
-    <span>HELLO</span>
+  <div class="guestbook-note" aria-hidden="true">
+    <div class="guestbook-note-pin"></div>
+    <div class="guestbook-note-head">
+      <span class="guestbook-note-to">TO 每一位路过的人</span>
+      <span class="guestbook-note-stamp">
+        <img src="/images/marcus.png" alt="">
+      </span>
+    </div>
+    <p class="guestbook-note-body">嗨，欢迎来到我的小站。<br>这一页留给路过的你，<br>想说的话，就写在这里吧。</p>
+    <span class="guestbook-note-sign">— 站长</span>
   </div>
 </section>
 
